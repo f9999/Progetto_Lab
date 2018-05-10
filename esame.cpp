@@ -3,7 +3,9 @@
 #include <string.h>
 #include <stdbool.h>
 #include <time.h>
-#define MAX 10
+#define MAX 50
+
+
 
 struct data{
 	int giorno,mese,anno;
@@ -41,20 +43,23 @@ bool autenticazione(char *nome,char *password,char *txt);
 bool registrazione(struct utente utente);
 bool aggiungi_artista(struct artista artista);
 bool controllo_funzioni(bool app,char tipologia);
-void visualizza_elenco(char tipologia,char *txt);
+bool visualizza_elenco(char tipologia,char *txt);
+bool visualizza_dati_id(int id, char *txt);
+//void leggi();
 
 int main(){
 	char nome[80],password[80],utente_file[80],cognome[80], *txt_admin="admin.csv",*txt_utente="user.csv",*txt_artisti="artisti.csv";
 	struct utente utenti[MAX],utente_registrato;
 	struct artista artisti[MAX],artista;
 	struct preferenza prefereza_utenti[MAX];
-	int risposta,risposta_aut;
+	int risposta,risposta_aut,numero;
 	int giorno,mese,anno;
 	bool condizione=true,app=NULL,admin=false,user=false;
-	
+//	leggi();
 	printf("utente o admin? [0/1]\n");
 	int (scanf("%d",&risposta));
 	//system("cls");
+	
 	do{
 		
 		if(risposta==1){
@@ -154,11 +159,26 @@ int main(){
 						scanf("%d",&scelta_3);
 						if(scelta_3==1){
 							visualizza_elenco('a',txt_artisti);
+							printf("inserisci ID dell'artista da modificare\n");
+							scanf("%d",&numero);
+							visualizza_dati_id(numero,txt_artisti);
+							//modifica_dati();
+							//modifica_file();
+							
 						}
 						
 						
 					}
 					else{
+						printf("desideri visualizzare l'elenco degli artisti iscritti?[0/1]\n");
+						scanf("%d",&scelta_3);
+						if(scelta_3==1){
+							visualizza_elenco('u',txt_utente);
+							printf("inserisci ID dell'artista da modificare\n");
+							scanf("%d",&numero);
+							if(numero==artista.id){
+							}
+						}
 						
 					}
 					
@@ -323,34 +343,77 @@ bool controllo_funzioni(bool app,char tipologia){
 }
 
 
-void visualizza_elenco(char tipologia,char *txt){
+bool visualizza_elenco(char tipologia,char *txt){
 
 	FILE *in;
 	in=fopen(txt,"r");
 	char string_f[300];
+	struct artista cipolla;
+	struct utente origano;
 	
 	fgets(string_f,300,in);
-	printf("ID NOME GENERE PRODUTTORE NAZIONE ANNO INIZIO\n");
+	if(tipologia== 'a')
+		printf("ID            NOME          GENERE      PRODUTTORE         NAZIONE ANNO INIZIO\n");
+	if(tipologia== 'u')
+		printf("ID     NOME    COGNOME    USER     PASSWORD     DATA DI NASCITA\n");
 	do{
-		printf("%d %s %s %s %s %d\n",atoi(strtok(string_f,";")),strtok(NULL,";"),strtok(NULL,";"),strtok(NULL,";"),strtok(NULL,";"),atoi(string_f));	
+		if(tipologia=='a'){
+			cipolla.id=atoi(strtok(string_f,";"));
+			strcpy(cipolla.nome,strtok(NULL,";"));
+			strcpy(cipolla.genere,strtok(NULL,";"));
+			strcpy(cipolla.produttore,strtok(NULL,";"));
+			strcpy(cipolla.nazione,strtok(NULL,";"));
+			cipolla.anno_inizio=atoi(strtok(NULL,";"));
+			printf("%2d %15s %15s %15s %15s %11d\n",cipolla.id,cipolla.nome,cipolla.genere,cipolla.produttore,cipolla.nazione,cipolla.anno_inizio);
+		}
+		if(tipologia== 'u'){
+			origano.id=atoi(strtok(string_f,";"));
+			strcpy(origano.nome,strtok(NULL,";"));
+			strcpy(origano.cognome,strtok(NULL,";"));
+			strcpy(origano.user,strtok(NULL,";"));
+			strcpy(origano.password,strtok(NULL,";"));
+			origano.data_nascita.giorno=atoi(strtok(NULL,";"));
+			origano.data_nascita.mese=atoi(strtok(NULL,";"));
+			origano.data_nascita.anno=atoi(strtok(NULL,";"));
+			printf("%2d %15s %15s %15s %15s %2d/%2d/%4d\n",origano.id,origano.nome,origano.cognome,origano.user,origano.password,origano.data_nascita.giorno,origano.data_nascita.mese
+			,origano.data_nascita.anno);
+		}	
 	}while(fgets(string_f,300,in)!=NULL);
 	
 	fclose(in);
 	
 	
 }
+ 
+/*void leggi(){
+	FILE *in;
+	in=fopen("user.csv","r+");
+	char string[200];
+	fgets(string,200,in);
+	printf("%s\n",string);
+	fseek(in,1000,SEEK_SET);
+	fputs("25",in);
+	fclose(in);
+}
+*/
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+bool visualizza_dati_id(int id, char *txt){
+	FILE *in;
+	in=fopen(txt,"r");
+	struct artista cipolla;
+	char string_f[200];
+	printf("ID            NOME          GENERE      PRODUTTORE         NAZIONE ANNO INIZIO\n");
+	while(fgets(string_f,200,in)!=NULL){
+		if((cipolla.id=atoi(strtok(string_f,";")))==id){
+			strcpy(cipolla.nome,strtok(NULL,";"));
+			strcpy(cipolla.genere,strtok(NULL,";"));
+			strcpy(cipolla.produttore,strtok(NULL,";"));
+			strcpy(cipolla.nazione,strtok(NULL,";"));
+			cipolla.anno_inizio=atoi(strtok(NULL,";"));
+			printf("%2d %15s %15s %15s %15s %11d\n",cipolla.id,cipolla.nome,cipolla.genere,cipolla.produttore,cipolla.nazione,cipolla.anno_inizio);
+		}
+		
+		
+	}	
+	fclose(in);
+}
