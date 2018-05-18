@@ -44,7 +44,11 @@ bool registrazione(struct utente utente);
 bool aggiungi_artista(struct artista artista);
 bool controllo_funzioni(bool app,char tipologia);
 bool visualizza_elenco(char tipologia,char *txt);
-bool visualizza_dati_id(int id, char *txt);
+char * visualizza_dati_id(int id, char *txt);
+struct artista string_to_struct_artista(char *string);
+struct utente string_to_struct_utente(char *string);
+struct artista modifica_dati_struct(struct artista to_modify);
+bool modifica_file(struct artista modificato);
 //void leggi();
 
 int main(){
@@ -101,6 +105,7 @@ int main(){
 	int scelta_1,scelta_2,scelta_3;
 	bool condizione_sw=true;
 	char string[20];
+	struct artista artista_da_modificare,artista_modificato;
 	if(admin){
 		do{
 			printf("Per aggiungere, modificare o eliminare degli artisti premi 1.\n");
@@ -154,31 +159,50 @@ int main(){
 					} 	
 					break;
 				case 2:
+					char continua[80],*string_da_modificare,app2[200];
+					strcpy(continua,"1");
 					if(scelta_1==1){
-						printf("desideri visualizzare l'elenco degli artisti iscritti?[0/1]\n");
-						scanf("%d",&scelta_3);
-						if(scelta_3==1){
-							visualizza_elenco('a',txt_artisti);
+						printf("---Modifica artisti--- \n");
+						do{
+							
+							printf("desideri visualizzare l'elenco degli artisti iscritti?[0/1]\n");
+							scanf("%d",&scelta_3);
+							if(scelta_3==1){
+								visualizza_elenco('a',txt_artisti);
+							}
 							printf("inserisci ID dell'artista da modificare\n");
 							scanf("%d",&numero);
-							visualizza_dati_id(numero,txt_artisti);
-							//modifica_dati();
-							//modifica_file();
-							
-						}
-						
-						
+							string_da_modificare=visualizza_dati_id(numero,txt_artisti);
+							printf("%s",string_da_modificare);
+							strcpy(app2,string_da_modificare);							
+							if(strcmp(app2,"Errore")==0){
+								printf("Sei un coglione\n");
+								printf("---Modifica artisti--- \n");
+								continue;
+							}
+							printf("ci sono QUASI\n");
+							artista_da_modificare=string_to_struct_artista(app2);
+							printf("Ci sono xd\n");
+							artista_modificato=modifica_dati_struct(artista_da_modificare);
+							app=modifica_file(artista_modificato);
+							controllo_funzioni(app,'m');
+							printf("desideri continuare a modificare altre informazioni?[1/altro]\n");
+							scanf("%s", continua);
+						}while(strcmp(continua,"1")==0);
 					}
+					
 					else{
+						struct utente utente_da_modificare;
+						char *string_da_modificare;
 						printf("desideri visualizzare l'elenco degli artisti iscritti?[0/1]\n");
 						scanf("%d",&scelta_3);
 						if(scelta_3==1){
 							visualizza_elenco('u',txt_utente);
-							printf("inserisci ID dell'artista da modificare\n");
-							scanf("%d",&numero);
-							if(numero==artista.id){
-							}
 						}
+						printf("inserisci ID dell'artista da modificare\n");
+						scanf("%d",&numero);
+						string_da_modificare=visualizza_dati_id(numero,txt_utente);
+						utente_da_modificare=string_to_struct_utente(string_da_modificare);
 						
 					}
 					
@@ -190,7 +214,7 @@ int main(){
 					condizione_sw=false;
 					break;
 				default:
-					printf("SEI UN COGLIONE.\n");
+					printf("RIPROVA.\n");
 					break;
 			}
 		}while(condizione_sw);	
@@ -252,10 +276,6 @@ bool registrazione(struct utente utente){
 	
 }
 	
-
-
-
-
 //funzionante per utenti e admin
 bool autenticazione(char *nome,char *password,char *txt){
 	int res=0,id;
@@ -282,7 +302,6 @@ bool autenticazione(char *nome,char *password,char *txt){
 		risultato=true;
 	return risultato;			
 }
-
 
 bool aggiungi_artista(struct artista artista){
 FILE *in;
@@ -331,58 +350,45 @@ bool controllo_funzioni(bool app,char tipologia){
 				printf("Login effettuato con successo.\n");
 			if(tipologia=='r')
 				printf("Registrazione effettuata con successo.\n");
+			if(tipologia=='m')
+				printf("Modifica effettuata con successo.\n");
 			return false;
 		}
 		else{
 			if(tipologia=='l')
 				printf("Login non effettuato.\n");
 			if(tipologia=='r')
-				printf("Registrazione non effettuata.\n");	
+				printf("Registrazione non effettuata.\n");
+			if(tipologia=='m')
+				printf("Modifica non effettuata.\n");	
 			return true;
 		}
 }
 
 
 bool visualizza_elenco(char tipologia,char *txt){
-
 	FILE *in;
 	in=fopen(txt,"r");
 	char string_f[300];
+	fgets(string_f,300,in);
 	struct artista cipolla;
 	struct utente origano;
-	
-	fgets(string_f,300,in);
 	if(tipologia== 'a')
 		printf("ID            NOME          GENERE      PRODUTTORE         NAZIONE ANNO INIZIO\n");
 	if(tipologia== 'u')
 		printf("ID     NOME    COGNOME    USER     PASSWORD     DATA DI NASCITA\n");
 	do{
 		if(tipologia=='a'){
-			cipolla.id=atoi(strtok(string_f,";"));
-			strcpy(cipolla.nome,strtok(NULL,";"));
-			strcpy(cipolla.genere,strtok(NULL,";"));
-			strcpy(cipolla.produttore,strtok(NULL,";"));
-			strcpy(cipolla.nazione,strtok(NULL,";"));
-			cipolla.anno_inizio=atoi(strtok(NULL,";"));
+			cipolla=string_to_struct_artista(string_f);
 			printf("%2d %15s %15s %15s %15s %11d\n",cipolla.id,cipolla.nome,cipolla.genere,cipolla.produttore,cipolla.nazione,cipolla.anno_inizio);
 		}
 		if(tipologia== 'u'){
-			origano.id=atoi(strtok(string_f,";"));
-			strcpy(origano.nome,strtok(NULL,";"));
-			strcpy(origano.cognome,strtok(NULL,";"));
-			strcpy(origano.user,strtok(NULL,";"));
-			strcpy(origano.password,strtok(NULL,";"));
-			origano.data_nascita.giorno=atoi(strtok(NULL,";"));
-			origano.data_nascita.mese=atoi(strtok(NULL,";"));
-			origano.data_nascita.anno=atoi(strtok(NULL,";"));
-			printf("%2d %15s %15s %15s %15s %2d/%2d/%4d\n",origano.id,origano.nome,origano.cognome,origano.user,origano.password,origano.data_nascita.giorno,origano.data_nascita.mese
-			,origano.data_nascita.anno);
-		}	
+			origano=string_to_struct_utente(string_f);	
+			printf("%2d %15s %15s %15s %15s %2d/%2d/%4d\n",origano.id,origano.nome,origano.cognome,origano.user,origano.password,
+			origano.data_nascita.giorno,origano.data_nascita.mese,origano.data_nascita.anno);
+		}
 	}while(fgets(string_f,300,in)!=NULL);
-	
 	fclose(in);
-	
-	
 }
  
 /*void leggi(){
@@ -397,23 +403,144 @@ bool visualizza_elenco(char tipologia,char *txt){
 }
 */
 
-bool visualizza_dati_id(int id, char *txt){
+char *  visualizza_dati_id(int id, char *txt){
 	FILE *in;
 	in=fopen(txt,"r");
+	char string_f[200],app[200],app2[200];
+	bool condizione=false;
 	struct artista cipolla;
-	char string_f[200];
-	printf("ID            NOME          GENERE      PRODUTTORE         NAZIONE ANNO INIZIO\n");
-	while(fgets(string_f,200,in)!=NULL){
-		if((cipolla.id=atoi(strtok(string_f,";")))==id){
-			strcpy(cipolla.nome,strtok(NULL,";"));
-			strcpy(cipolla.genere,strtok(NULL,";"));
-			strcpy(cipolla.produttore,strtok(NULL,";"));
-			strcpy(cipolla.nazione,strtok(NULL,";"));
-			cipolla.anno_inizio=atoi(strtok(NULL,";"));
-			printf("%2d %15s %15s %15s %15s %11d\n",cipolla.id,cipolla.nome,cipolla.genere,cipolla.produttore,cipolla.nazione,cipolla.anno_inizio);
+	struct utente origano;
+	while(fgets(string_f,200,in)!=NULL && !condizione){
+		strcpy(app,string_f);
+		if((atoi(strtok(string_f,";")))==id){
+			if(strcmp(txt,"utenti.csv")==0){
+				printf("ID     NOME    COGNOME    USER     PASSWORD     DATA DI NASCITA\n");
+				origano=string_to_struct_utente(app);
+				printf("%2d %15s %15s %15s %15s %2d/%2d/%4d\n",origano.id,origano.nome,origano.cognome,origano.user,origano.password,
+				origano.data_nascita.giorno,origano.data_nascita.mese,origano.data_nascita.anno);
+				condizione=true;
+			}
+			else{
+				strcpy(app2,app);
+				cipolla=string_to_struct_artista(app);
+				printf("ID            NOME          GENERE      PRODUTTORE         NAZIONE ANNO INIZIO\n");
+				printf("%2d %15s %15s %15s %15s %11d\n",cipolla.id,cipolla.nome,cipolla.genere,cipolla.produttore,cipolla.nazione,cipolla.anno_inizio);	
+				condizione=true;	
+			}
+			
+		}
+	}
+		
+	fclose(in);
+	if(!condizione)
+		strcpy(app2,"Errore");
+	return app2;
+		
+}
+
+
+struct artista string_to_struct_artista(char *string){
+	struct artista cipolla;
+	cipolla.id=atoi(strtok(string,";"));
+	strcpy(cipolla.nome,strtok(NULL,";"));
+	strcpy(cipolla.genere,strtok(NULL,";"));
+	strcpy(cipolla.produttore,strtok(NULL,";"));
+	strcpy(cipolla.nazione,strtok(NULL,";"));
+	cipolla.anno_inizio=atoi(strtok(NULL,";"));	
+	return cipolla;	
+}
+
+struct utente string_to_struct_utente(char *string){
+	struct utente origano;
+	origano.id=atoi(strtok(string,";"));
+	strcpy(origano.nome,strtok(NULL,";"));
+	strcpy(origano.cognome,strtok(NULL,";"));
+	strcpy(origano.user,strtok(NULL,";"));
+	strcpy(origano.password,strtok(NULL,";"));
+	origano.data_nascita.giorno=atoi(strtok(NULL,";"));
+	origano.data_nascita.mese=atoi(strtok(NULL,";"));
+	origano.data_nascita.anno=atoi(strtok(NULL,";"));
+	return origano;
+}
+
+
+
+struct artista modifica_dati_struct(struct artista to_modify){
+	char scelta[10];
+	bool condizione=true;
+	do {
+		printf("Che dati vuole modificare?(nome,genere,produttore,nazione,anno)\n");
+		scanf("%s",scelta);
+		if(strcmp(scelta,"nome")==0){
+			printf("inserire il nuovo nome:");
+			scanf("%s",to_modify.nome);
+			condizione=false;
+		}
+		if(strcmp(scelta,"genere")==0 && condizione){
+			printf("inserire il nuovo genere:");
+			scanf("%s",to_modify.genere);
+			condizione=false;
+		}
+		if(strcmp(scelta,"produttore")==0 && condizione){
+			printf("inserire il nuovo produttore:");
+			scanf("%s",to_modify.produttore);
+			condizione=false;
+		}
+		if(strcmp(scelta,"nazione")==0 && condizione){
+			printf("inserire la nuova nazione:");
+			scanf("%s",to_modify.nazione);
+			condizione=false;
+		}
+		if(strcmp(scelta,"anno")==0 && condizione){
+			printf("inserire il nuovo anno:");
+			scanf("%d",&to_modify.anno_inizio);
+			condizione=false;
+		}
+		printf("Giovan8 ");
+	}while(condizione);
+	return to_modify;
+}
+
+bool modifica_file(struct artista modificato){
+	FILE *in,*out;
+	in=fopen("artisti.csv","r");
+	int id,lengh,app,dio=0,k=0,lol=0,rosmarino,rosa,n=0;
+	struct artista artisti[MAX];
+	bool condizione=true,risultato;;
+	char string_f[200],gesu[200];
+	for(int i=0;fgets(string_f,200,in)!=NULL;i++){
+		n++;
+		artisti[i]=string_to_struct_artista(string_f);
+		if(artisti[i].id==modificato.id){
+			artisti[i]=modificato;
 		}
 		
-		
-	}	
+	}
 	fclose(in);
+	out=fopen("artisti.csv","w");
+	for(int i=0;i<n;i++){
+		app=fprintf(out,"%d;%s;%s;%s;%s;%d\n",artisti[i].id,artisti[i].nome,artisti[i].genere,artisti[i].produttore,artisti[i].nazione,artisti[i].anno_inizio);
+		if(app>0){
+			app=0;
+			k++;
+		}
+	}
+		
+	
+		
+	
+	if(n==k){
+		printf("risultato=true\n");
+		risultato=true;
+	}else{
+	
+		printf("risultato=false chiusura file\n");
+		risultato=false;}
+	fclose(out);
+	return risultato;
 }
+
+
+
+
+
