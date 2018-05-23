@@ -40,7 +40,7 @@ struct preferenza{
 	bool preferenza;
 };
 
-char * autenticazione(char *nome,char *password,char *txt);
+int autenticazione(char *nome,char *password,char *txt);
 bool registrazione(struct utente utente);
 bool aggiungi_artista(struct artista artista);
 bool controllo_funzioni(bool app,char tipologia);
@@ -62,9 +62,9 @@ int main(){
 	struct artista artisti[MAX],artista;
 	struct preferenza prefereza_utenti[MAX];
 	int risposta,risposta_aut,numero;
-	int giorno,mese,anno;
+	int giorno,mese,anno,id_lol;
 	bool condizione=true,app=NULL,admin=false,user=false;
-	char *string_pd,dio[200];
+	char *string_pd,dio[200],appogio[200];
 	struct utente utente_log;
 	do{
 		printf("Utente o admin? [0/1]\n");
@@ -78,12 +78,12 @@ int main(){
 			printf("inserisci utente e password\n");
 			scanf("%s %s", nome,password);
 			//system("cls");
-			string_pd=autenticazione(nome,password,txt_admin);
+			id_lol=autenticazione(nome,password,txt_admin);
 			//condizione=controllo_funzioni(app,'l');
-			if(strcmp(string_pd,"errore")==0){
+			if(id_lol==-1){
 				continue;
 			}
-			if(string_pd!=NULL){
+			if(id_lol>=0){
 				admin=true;
 				condizione=false;
 			}
@@ -94,22 +94,23 @@ int main(){
 			scanf("%d",&risposta_aut);
 			//system("cls");
 			if(risposta_aut==1){
-				printf("inserisci utente e password\n");
-				scanf("%s %s", nome,password);
-				//system("cls");
-				string_pd=autenticazione(nome,password,txt_utente);
-				printf("orcoddio %s\n",string_pd);
-				if(strcmp(string_pd,"errore")==0)
-					continue;
-				
-				utente_log=string_to_struct_utente(string_pd);
-				
-				printf("Benvenuto %s %s\n",utente_log.nome,utente_log.cognome);
+				do{
+					printf("inserisci utente e password\n");
+					scanf("%s %s", nome,password);
+					//system("cls");
+					id_lol=autenticazione(nome,password,txt_utente);
+					if(id_lol==-1){
+						continue;
+					}
+					else {
+					//strcpy(appogio,string_pd);
+					//utente_log=string_to_struct_utente(appogio);
+						user=true;
+						condizione=false;
+					}
+				}while(condizione);
+				//printf("Benvenuto %s %s\n",utente_log.nome,utente_log.cognome);
 				//condizione=controllo_funzioni(app,'l');
-				if(string_pd!=NULL){
-				user=true;
-				condizione=false;
-				}
 			}
 			if(risposta_aut==0){
 				printf("Inserire il nome,cognome,user,password e data di nascita[<nome> <cognome> <user> <password> <gg mm aa>]\n");
@@ -289,8 +290,9 @@ int main(){
 		}while(condizione_sw);	
 	}
 	if(user){
-		char risposta_user[10];
+		char risposta_user[10],*string_id;
 		int scelta;
+		struct utente dati_utente_log;
 		printf("[1] Ricerca \n");
 		printf("[2] Ordinamento \n");
 		printf("[3] Profilo utente \n");
@@ -301,13 +303,22 @@ int main(){
 			case 1:
 				break;
 			case 2:
+				printf("vuoi visualizzare la top 10 ascoltati?[][][]");
 				break;
 			case 3:
 				printf("Desideri visualizzare il tuo profilo?[si/no]\n");
 				scanf("%s",risposta_user);
 				if(controllo_input(risposta_user)){
+					string_id=visualizza_dati_id(id_lol,txt_utente);
+					dati_utente_log=string_to_struct_utente(string_id);
+				}
+				printf("vuoi visualizzare i dati di altri utenti?[si/no]\n");
+				scanf("%s",risposta_user);
+				if(controllo_input(risposta_user)){
 					
 				}
+				//stampa_struct_utente(dati_utente_log);
+				
 				break;
 			case 4:
 				break;
@@ -384,16 +395,15 @@ bool registrazione(struct utente utente){
 }
 	
 //funzionante per utenti e admin
-char * autenticazione(char *nome,char *password,char *txt){
-	int res=0,id;
+int  autenticazione(char *nome,char *password,char *txt){
+	int res=0,id,i=0,risultato;
 	bool condizione_admin=true;
-	char nome_f[50],cognome_f[50],user_f[50],password_f[50],appoggio[200],string_f[200],risultato[200];
+	char nome_f[50],cognome_f[50],user_f[50],password_f[50],appoggio[200],string_f[200];
 	FILE *in;
 	in=fopen(txt,"r");
 	rewind(in);
 	
 	while(condizione_admin && fgets(string_f,200,in)!=NULL){
-		strcpy(appoggio,string_f);
 		id=atoi(strtok(string_f,";"));
 		strcpy(nome_f,strtok(NULL,";"));
 		strcpy(cognome_f,strtok(NULL,";"));
@@ -402,13 +412,13 @@ char * autenticazione(char *nome,char *password,char *txt){
 		if(strcmp(user_f,nome)==0)
 			if(strcmp(password_f,password)==0){
 				condizione_admin=false;
-				strcpy(risultato,appoggio);
+				risultato=id;
 			}
 				
+	}	
+	if(condizione_admin){
+		risultato=-1;
 	}
-		
-	if(condizione_admin)
-		strcpy(risultato,"errore");
 	fclose(in);
 	return risultato;			
 }
