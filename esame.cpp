@@ -29,7 +29,7 @@ struct artista {
 	int id;
 	char nome[80];
 	int numero_generi;
-	char *genere[80];
+	char genere[80][20];
 	char produttore[80];
 	char nazione[80];
 	int anno_inizio;
@@ -43,7 +43,7 @@ struct preferenza{
 
 int autenticazione(char *nome,char *password,char *txt);
 bool registrazione(struct utente utente);
-bool aggiungi_artista(struct artista artista,int numero_generi);
+bool aggiungi_artista(struct artista artista);
 bool controllo_funzioni(bool app,char tipologia);
 bool visualizza_elenco(char tipologia,char *txt);
 char * visualizza_dati_id(int id, char *txt);
@@ -162,24 +162,27 @@ int main(){
 			switch(scelta_2){
 				case 1:
 					if(scelta_1==1){
-						do{
+						do{			
+							fflush(stdin);
 							printf("Inserire il nome:");
-							system("pause");
 							fgets(artista.nome,80,stdin);
 							printf("Inserire numero di generi:");
 							scanf("%d",&artista.numero_generi);
 							for(int i=0;i<artista.numero_generi;i++){
+								fflush(stdin);
 								printf("Inserire il genere n.%d:",i+1);
-								
 								fgets(artista.genere[i],80,stdin);
 							}
+							fflush(stdin);
 							printf("Inserire il produttore:");
 							fgets(artista.produttore,80,stdin);
+							fflush(stdin);
 							printf("Inserire la nazionalita':");
 							fgets(artista.nazione,80,stdin);
+							fflush(stdin);
 							printf("Inserire la data di inizio attivita':");
 							scanf("%d",&artista.anno_inizio);
-							app=aggiungi_artista(artista,n);
+							app=aggiungi_artista(artista);
 							controllo_funzioni(app,'r');
 							printf("desidera aggiungere altri artisti?[si/no]\n");
 							scanf("%s",scelta_3);
@@ -439,7 +442,7 @@ int  autenticazione(char *nome,char *password,char *txt){
 	return risultato;			
 }
 
-bool aggiungi_artista(struct artista artista,int numero_generi){
+bool aggiungi_artista(struct artista artista){
 FILE *in;
 	in=fopen("artisti.csv","r");
 	char nome[80],genere[80],produttore[80],nazionalita[80],string_f[200];
@@ -470,14 +473,17 @@ FILE *in;
 	if(condizione_id && condizione_user){
 		FILE *out;
 		out=fopen("artisti.csv","a");
-		if(numero_generi==1)
-			app=fprintf(out,"\n%d;%s;%d;%s;%s;%s;%d",id,artista.nome,artista.numero_generi,artista.genere,artista.produttore,artista.nazione,artista.anno_inizio);
+		if(artista.numero_generi==1)
+			app=fprintf(out,"%d;%s;%d;%s;%s;%s;%d",id,strtok(artista.nome,"\n"),artista.numero_generi,strtok(artista.genere[0],"\n"),
+			strtok(artista.produttore,"\n"),strtok(artista.nazione,"\n"),artista.anno_inizio);
 		else{
-			app=fprintf(out,"\n%d;%s;%d;",id,artista.nome,artista.numero_generi);
+			app=fprintf(out,"%d;%s;%d;",id,strtok(artista.nome,"\n"),artista.numero_generi);
 			for(int i=0;i<artista.numero_generi;i++){
-				fprintf(out,"%s,",artista.genere[i]);
+				fprintf(out,"%s",strtok(artista.genere[i],"\n"));
+				if(i!=artista.numero_generi-1)
+					fprintf(out,",");
 			}
-			fprintf(out,";%s;%s;%d",artista.produttore,artista.nazione,artista.anno_inizio);
+			fprintf(out,";%s;%s;%d\n",strtok(artista.produttore,"\n"),strtok(artista.nazione,"\n"),artista.anno_inizio);
 		}
 		fclose(out);
 	}
@@ -541,15 +547,16 @@ bool visualizza_elenco(char tipologia,char *txt){
 char *  visualizza_dati_id(int id, char *txt){
 	FILE *in;
 	in=fopen(txt,"r");
-	char string_f[200],app[200],app2[200];
+	char string_f[200],app[200];
+	char app2[200];
 	bool condizione=false;
 	struct artista cipolla;
 	struct utente origano;
 	while(fgets(string_f,200,in)!=NULL && !condizione){
 		strcpy(app,string_f);
 		if((atoi(strtok(string_f,";")))==id){
-			condizione=true;
-			strcpy(app2,app);	
+			condizione=true;		
+			strcpy(app2,app);
 			if(strcmp(txt,"user.csv")==0){	
 				origano=string_to_struct_utente(app);
 				printf("ID            NOME         COGNOME            USER        PASSWORD  DATA DI NASCITA\n");
@@ -571,26 +578,28 @@ char *  visualizza_dati_id(int id, char *txt){
 }
 
 struct artista string_to_struct_artista(char *string){
-	char *carattere,*app;
-	strcpy(carattere,",");
+	char app[100];
 	struct artista cipolla;
 	cipolla.id=atoi(strtok(string,";"));
-	printf("mi offendo qua 1\n");
 	strcpy(cipolla.nome,strtok(NULL,";"));
-	printf("mi offendo qua 2\n");
 	cipolla.numero_generi=atoi(strtok(NULL,";"));
-	printf("mi offendo qua 3\n");
-	strcpy(app,strtok(NULL,";"));
-	for(int i=0;i<cipolla.numero_generi;i++){
-		if(i!=cipolla.numero_generi-1){
-			printf("almeno ci provo\n");
-			strcpy(carattere,",");}
-		strcpy(cipolla.genere[i],strtok(app,carattere));
+	if(cipolla.numero_generi>1){
+		strcpy(app,strtok(NULL,";"));
+		strcpy(cipolla.produttore,strtok(NULL,";"));
+		strcpy(cipolla.nazione,strtok(NULL,";"));
+		cipolla.anno_inizio=atoi(strtok(NULL,";"));
+		strcpy(cipolla.genere[0],strtok(app,","));	
+		for(int i=1;i<cipolla.numero_generi;i++){	
+			strcpy(cipolla.genere[i],strtok(NULL,","));				
+		}	
 	}
-		
-	strcpy(cipolla.produttore,strtok(NULL,";"));
-	strcpy(cipolla.nazione,strtok(NULL,";"));
-	cipolla.anno_inizio=atoi(strtok(NULL,";"));	
+	else{
+		strcpy(cipolla.genere[0],strtok(NULL,";"));
+		strcpy(cipolla.produttore,strtok(NULL,";"));
+		strcpy(cipolla.nazione,strtok(NULL,";"));
+		cipolla.anno_inizio=atoi(strtok(NULL,";"));	
+	}		
+	
 	return cipolla;	
 }
 
@@ -634,8 +643,9 @@ bool controllo_input(char *string){
 }
 
 struct artista modifica_dati_struct(struct artista to_modify){
-	char scelta[10];
+	char scelta[10],scelta_genere[20];
 	bool condizione=true;
+	int num_genere;
 	do {
 		printf("Che dati vuole modificare?(nome,genere,produttore,nazione,anno)\n");
 		scanf("%s",scelta);
@@ -645,9 +655,30 @@ struct artista modifica_dati_struct(struct artista to_modify){
 			condizione=false;
 		}
 		if(strcmp(scelta,"genere")==0 && condizione){
-			printf("inserire il nuovo genere:");
-			scanf("%s",to_modify.genere);
-			condizione=false;
+			if(to_modify.numero_generi>1){
+				printf("Vuoi eliminare o aggiungere un genere?[elimina/aggiungi]\n");
+				scanf("%s",scelta_genere);
+				if(strcmp(scelta_genere,"aggiungi")==0){
+					printf("inserire il nuovo genere:");
+					scanf("%s",to_modify.genere[to_modify.numero_generi]);
+					strtok(to_modify.genere[to_modify.numero_generi],"\n");
+					to_modify.numero_generi++;
+					condizione=false;
+				}
+				if(strcmp(scelta_genere,"elimina")==0){
+					printf("Che genere vuoi eliminare?\n");
+					for(int i=0;i<to_modify.numero_generi;i++){
+						printf("NUM %d :%s\n",i+1,to_modify.genere[i]);
+					}
+					scanf("%d",&num_genere);
+					for(int i=num_genere-1;i<to_modify.numero_generi-1;i++){
+						strcpy(to_modify.genere[i],to_modify.genere[i+1]);
+					}
+					to_modify.numero_generi--;
+					condizione=false;	
+				}
+
+			}
 		}
 		if(strcmp(scelta,"produttore")==0 && condizione){
 			printf("inserire il nuovo produttore:");
@@ -750,7 +781,17 @@ bool modifica_file_artisti(struct artista modificato,char tipologia){
 	if(condizione_id){
 		out=fopen("artisti.csv","w");
 		for(int i=0;i<n;i++){
-			app=fprintf(out,"%d;%s;%s;%s;%s;%d\n",artisti[i].id,artisti[i].nome,artisti[i].genere,artisti[i].produttore,artisti[i].nazione,artisti[i].anno_inizio);
+			if(artisti[i].numero_generi==1)
+				app=fprintf(out,"%d;%s;%d;%s;%s;%s;%d\n",artisti[i].id,artisti[i].nome,artisti[i].numero_generi,artisti[i].genere[0],artisti[i].produttore,artisti[i].nazione,artisti[i].anno_inizio);
+			else{
+				fprintf(out,"%d;%s;%d;",artisti[i].id,artisti[i].nome,artisti[i].numero_generi);
+				for(int j=0;j<artisti[i].numero_generi;j++){
+					fprintf(out,"%s",artisti[i].genere[j]);
+					if(j!=artisti[i].numero_generi-1)
+						fprintf(out,",");
+				}
+				app=fprintf(out,";%s;%s;%d\n",artisti[i].produttore,artisti[i].nazione,artisti[i].anno_inizio);
+			}
 			if(app>0){
 				app=0;
 				k++;
@@ -813,4 +854,3 @@ bool modifica_file_utenti(struct utente modificato,char tipologia){
 	
 	return risultato;	
 }
-
