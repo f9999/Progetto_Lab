@@ -56,10 +56,12 @@ bool modifica_file_utenti(struct utente modificato,char tipologia);
 void stampa_struct_artista(struct artista to_print);
 void stampa_struct_utente(struct utente to_print);
 bool controllo_input(char *string);
-bool ricerca_artisti(char *string,char tipo);
+bool ricerca_artisti(char *string,char tipo,int id_utente);
 int algoritmo_ricerca(char *text,char *pattern);
 int controllo_nome(char *txt,char *nome);
 bool controllo_data_nascita(struct data b_day);
+bool preferenze_utente(char *txt);
+bool inserimento_ascolti_e_preferenze(int id_artista,int id_utente,char tipologia);
 
 int main(){
 	char nome[80],password[80],utente_file[80],cognome[80], *txt_admin="admin.csv",*txt_utente="user.csv",*txt_artisti="artisti.csv";
@@ -316,57 +318,66 @@ int main(){
 		char risposta_user[10],*string_id,scelta_modifica_dati[10],continua[10];
 		int scelta;
 		struct utente dati_utente_log,utente_modificato;
-		printf("[1] Ricerca \n");
+		printf("[1] Ricerca artista per ascolto o preferenza \n");
 		printf("[2] Ordinamento \n");
-		printf("[3] Profilo utente \n");
-		printf("[4] Esci\n");
+		printf("[3] Profilo utente \n");//implementare la ricerca.
+		printf("[4] Preferenze \n");
+		printf("[5] Ke artista vuoi ascoltare? \n");
+		printf("[6] Esci\n");
+		printf("risposta: ");
 		do{
 		scanf("%d",&scelta);	
 		switch(scelta){
-			case 1:
+			case 1://ricerca approssimata
 				bool condizione,app;
 				char risposta[20],scelta_to_continue[20];
-				condizione=true;
+				
 				do{
-					printf("inserisci il campo di ricerca[nome][genere][produttore][nazione][anno]\n");
-					scanf("%s",risposta);
-					if(strcmp(risposta,"nome")==0){
-						condizione=false;
-						printf("inserisci nome artista\n");
-						scanf("%s",risposta);
-						app=ricerca_artisti(risposta,'n');
-					}
-					if(strcmp(risposta,"genere")==0){
-						printf("inserisci un genere musicale\n");
-						condizione=false;
-						scanf("%s",risposta);
-						app=ricerca_artisti(risposta,'g');
-					}
-					if(strcmp(risposta,"produttore")==0){
-						printf("inserisci un produttore\n");
-						condizione=false;
-						scanf("%s",risposta);
-						app=ricerca_artisti(risposta,'p');
-					}
-					if(strcmp(risposta,"nazione")==0){
-						printf("inserisci una nazione\n");
-						condizione=false;
-						scanf("%s",risposta);
-						app=ricerca_artisti(risposta,'h');
-					}
-					if(strcmp(risposta,"anno")==0){
-						printf("inserisci anno di inizio attivita'\n");
-						condizione=false;
-						scanf("%s",risposta);
-					}
+					condizione=true;
+					do{
+						fflush(stdin);
+						printf("inserisci il campo di ricerca[nome][genere][produttore][nazione][anno]\n");
+						
+						fgets(risposta,80,stdin);						
+						if(strcmp(strtok(risposta,"\n"),"nome")==0){
+							condizione=false;
+							printf("inserisci nome artista\n");
+							scanf("%s",risposta);
+							app=ricerca_artisti(risposta,'n',id_lol);
+						}
+						if(strcmp(strtok(risposta,"\n"),"genere")==0){
+							printf("inserisci un genere musicale\n");
+							condizione=false;
+							scanf("%s",risposta);
+							app=ricerca_artisti(risposta,'g',id_lol);
+						}
+						if(strcmp(strtok(risposta,"\n"),"produttore")==0){
+							printf("inserisci un produttore\n");
+							condizione=false;
+							scanf("%s",risposta);
+							app=ricerca_artisti(risposta,'p',id_lol);
+						}
+						if(strcmp(strtok(risposta,"\n"),"nazione")==0){
+							printf("inserisci una nazione\n");
+							condizione=false;
+							scanf("%s",risposta);
+							app=ricerca_artisti(risposta,'h',id_lol);
+						}
+						if(strcmp(strtok(risposta,"\n"),"anno")==0){
+							printf("inserisci anno di inizio attivita'\n");
+							condizione=false;
+							scanf("%s",risposta);
+							//aggiungere ordinamento dio è cattivo ma fedelucio è bellissimo;system(pausa);
+						}
+					}while(condizione);
 					printf("Desideri effettuare un'altra ricerca?[si/no]\n");
 					scanf("%s",scelta_to_continue);
 				}while(controllo_input(scelta_to_continue));
 				break;
-			case 2:
+			case 2://ordinamento
 				printf("vuoi visualizzare la top 10 ascoltati?[][][]");//no Xd
 				break;
-			case 3:
+			case 3://visualizzazione profilo
 				printf("Desideri visualizzare il tuo profilo?[si/no]\n");
 				scanf("%s",risposta_user);
 				if(controllo_input(risposta_user)){
@@ -383,12 +394,16 @@ int main(){
 				//stampa_struct_utente(dati_utente_log);
 				
 				break;
-			case 4:
+			case 4://preferenze
+				printf("wooooooow\n");
+				break;
+			case 5://ascoltare artisti
+				
 				break;
 			default:
 				printf("memt\n");
 			}
-		}while(scelta<0 || scelta>4);	
+		}while(scelta<0 || scelta>6);	
 		
 		
 		
@@ -513,6 +528,12 @@ bool controllo_funzioni(bool app,char tipologia){
 				printf("Modifica effettuata con successo.\n");
 			if(tipologia=='e')
 				printf("Cancellazzione effettuata con successo.\n");
+			if(tipologia=='a')
+				printf("Ascolto effettuato con successo.\n");
+			if(tipologia=='i')
+				printf("Like salvato con successo.\n");
+			if(tipologia=='d')
+				printf("Dislike salvato con successo.\n");
 			return false;
 		}
 		else{
@@ -523,7 +544,13 @@ bool controllo_funzioni(bool app,char tipologia){
 			if(tipologia=='m')
 				printf("Modifica non effettuata.\n");
 			if(tipologia=='e')
-				printf("Cancellazzione non effettuata.\n");	
+				printf("Cancellazzione non effettuata.\n");
+			if(tipologia=='a')
+				printf("Ascolto non effettuato. \n");
+			if(tipologia=='i')
+				printf("Like non salvato.\n");
+			if(tipologia=='d')
+				printf("Dislike non salvato.\n");	
 			return true;
 		}
 }
@@ -889,7 +916,8 @@ bool modifica_file_utenti(struct utente modificato,char tipologia){
 	return risultato;	
 }
 
-bool ricerca_artisti(char *string,char tipo){
+//inserire ricerca per anno grz;;
+bool ricerca_artisti(char *string,char tipo,int id_utente){
 	struct artista array[MAX];
 	struct punti{
 		struct artista array;
@@ -897,10 +925,12 @@ bool ricerca_artisti(char *string,char tipo){
 	};
 	FILE *in;
 	struct punti classifica[MAX],app;
-	char string_f[200],string_ricerca[50];
+	char string_f[200],string_ricerca[50],risposta[100];
 	int n=0,punteggio_finale[MAX],max,min,punteggio_generi;
 	int lung_string_ricerca,differenza_lunghezze=0,m,lung_pattern,punteggio_parziale[MAX];
+	int posizione_vettore,id_artista,vettore_posizioni[MAX];
 	bool match_positivo=false,condizione_secondo_ciclo=true,condizione_generi=false;
+	bool risultato,condizione=true;
 	in=fopen("artisti.csv","r");
 	for(int i=0;fgets(string_f,200,in)!=NULL;i++){
 		classifica[i].array=string_to_struct_artista(string_f);
@@ -919,6 +949,13 @@ bool ricerca_artisti(char *string,char tipo){
 		lung_string_ricerca=strlen(string_ricerca);
 		lung_pattern=strlen(string);
 		differenza_lunghezze=lung_string_ricerca-lung_pattern;
+		//if(tipo=='a')
+			/*strcpy(string_ricerca,classifica[i].array.anno_inizio);
+			if(classifica[i].array.anno_inizio=string_ricerca){
+				printf("artista trovato\n");
+				continue;
+			}*/
+				
 		
 		if(condizione_generi){
 			for(int h=0;h<classifica[i].array.numero_generi;h++){
@@ -946,6 +983,7 @@ bool ricerca_artisti(char *string,char tipo){
 					punteggio_finale[i]=punteggio_generi;
 							
 			}
+			classifica[i].punti=punteggio_finale[i];
 		}
 		else{
 			punteggio_finale[i]=algoritmo_ricerca(string_ricerca,string);
@@ -953,11 +991,13 @@ bool ricerca_artisti(char *string,char tipo){
 				printf("Artista trovato\n");
 				printf("ID NOME PRODUTTORE NAZIONE ANNO INIZIO GENERE/I\n");
 				stampa_struct_artista(classifica[i].array);
+				posizione_vettore=i;
+				id_artista=classifica[i].array.id;
 				condizione_secondo_ciclo=false;
 				continue;
 			}
+			classifica[i].punti=punteggio_finale[i];
 		}
-		
 		classifica[i].punti=punteggio_finale[i];
 	}
 	
@@ -973,45 +1013,81 @@ bool ricerca_artisti(char *string,char tipo){
 			classifica[min]=classifica[i];
 			classifica[i]=app;
 		}
+		
 		max=classifica[n-1].punti;
 		printf("Forse cercavi:\n");
 		printf("ID NOME PRODUTTORE NAZIONE ANNO INIZIO GENERE/I\n");
+		int h=0;
 		for(int i=n-1;i>=0 && condizione_secondo_ciclo;i--){
 			if(classifica[i].punti==max || (max-classifica[i].punti)==1){//regole di visualizzazione
+				printf("[%d]",h);
 				stampa_struct_artista(classifica[i].array);
+				h++;
+				vettore_posizioni[h]=i;
 			}	
 		}	
 	}
-	
+	printf("Vuoi ascoltare o lasciare una preferenza?[ascolto/preferenza]\n");
+	fflush(stdin);
+	fgets(risposta,100,stdin);
+	if(!condizione_secondo_ciclo){
+		if(strcmp(strtok(risposta,"\n"),"ascolto")==0){
+			printf("Hai appena ascoltato:%s\n",classifica[posizione_vettore].array.nome);
+			risultato=inserimento_ascolti_e_preferenze(id_artista,id_utente,'a');
+			controllo_funzioni(risultato,'a');
+		}
+		if(strcmp(strtok(risposta,"\n"),"preferenza")==0){
+			do{
+				printf("Like o dislike?[like/dislike]\n");
+				fflush(stdin);
+				fgets(risposta,100,stdin);
+				if(strcmp(strtok(risposta,"\n"),"like")==0){
+					risultato=inserimento_ascolti_e_preferenze(id_artista,id_utente,'l');
+					condizione=false;
+					controllo_funzioni(risultato,'i');					
+				}
+				else if(strcmp(strtok(risposta,"\n"),"dislike")==0){
+					risultato=inserimento_ascolti_e_preferenze(id_artista,id_utente,'d');
+					condizione=false;
+					controllo_funzioni(risultato,'d');
+					}
+			}while(condizione);	
+		}
+	}
+	else{
+		
+		
+		
+	}
 }
 
 int algoritmo_ricerca(char *text,char *pattern){
 	int lung_string_ricerca,lung_pattern,differenza_lunghezze;
-	int m,punteggio_parziale[MAX],punteggio_finale;
+	int m,punteggio_parziale,punteggio_finale;
 	lung_string_ricerca=strlen(text);
 	lung_pattern=strlen(pattern);
 	differenza_lunghezze=lung_string_ricerca-lung_pattern;
 	for(int j=0;j<=differenza_lunghezze;j++){
 		m=0;
-		punteggio_parziale[j]=0;
-		for(int l=j;l<lung_string_ricerca;l++){ 
+		punteggio_parziale=0;
+		for(int l=j;m<lung_pattern;l++){ 
 			if(text[l]==pattern[m]){
-				punteggio_parziale[j]++;
+				punteggio_parziale++;
 			}	
 			m++;
 		}
-		if(lung_string_ricerca==lung_pattern && punteggio_parziale[j]==lung_pattern){
-			punteggio_finale=punteggio_parziale[j];
+		if(lung_string_ricerca==lung_pattern && punteggio_parziale==lung_pattern){
+			punteggio_finale=punteggio_parziale;
 			continue;
 		}
-		if(punteggio_parziale[j]==lung_pattern){
-			punteggio_finale=punteggio_parziale[j];
+		if(punteggio_parziale==lung_pattern){
+			punteggio_finale=punteggio_parziale;
 			continue;
 		}
 		if(j==0)
-			punteggio_finale=punteggio_parziale[j];
-		if(punteggio_parziale[j]>punteggio_finale  && j>0)
-			punteggio_finale=punteggio_parziale[j];
+			punteggio_finale=punteggio_parziale;
+		if(punteggio_parziale>punteggio_finale  && j>0)
+			punteggio_finale=punteggio_parziale;
 	}
 	return punteggio_finale;
 }
@@ -1083,8 +1159,16 @@ bool controllo_data_nascita(struct data b_day){
 }
 
 
-
-
-
-
-
+bool inserimento_ascolti_e_preferenze(int id_artista,int id_utente,char tipologia){
+	FILE *out;
+	int app;
+	bool risultato;
+	out=fopen("preferenze_ascolto.csv","a");
+	app=fprintf(out,"%d;%d;ascoltato\n",id_utente,id_artista);
+	if(app>0)
+		risultato=true;
+	else
+		risultato=false;
+	fclose(out);
+	return risultato;
+}
