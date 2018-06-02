@@ -63,6 +63,7 @@ bool controllo_data_nascita(struct data b_day);
 bool preferenze_utente(char *txt);
 bool inserimento_ascolti_e_preferenze(int id_artista,int id_utente,char tipologia);
 bool controllo_file_preferenze(char * string);
+bool aggiungi_admin(struct utente admin);
 
 
 
@@ -143,6 +144,7 @@ int main(){
 	bool condizione_sw=true;
 	char string[20];
 	struct artista artista_da_modificare,artista_modificato;
+	struct utente admin_to_add;
 	if(admin){
 		do{
 			printf("[1] per aggiungere, modificare o eliminare degli artisti \n");
@@ -202,7 +204,7 @@ int main(){
 							//system("cls");
 						}while(controllo_input(scelta_3));
 					}
-					else{ 
+					else if(scelta_1==2){ 
 						do{
 							printf("Inserire il nome,cognome,user,password e data di nascita[<nome> <cognome> <user> <password> <gg mm aa>]\n");
 							scanf("%s %s %s %s %d %d %d",utente_registrato.nome,utente_registrato.cognome,utente_registrato.user,utente_registrato.password,
@@ -213,6 +215,30 @@ int main(){
 							scanf("%s",scelta_3);
 							//system("cls");
 						}while(controllo_input(scelta_3)); 
+					}
+					else if(scelta_1==3){
+						do{			
+							fflush(stdin);
+							printf("Inserire il nome:");
+							fgets(admin_to_add.nome,80,stdin);
+							printf("Inserire il cognome:");
+							fflush(stdin);
+							fgets(admin_to_add.cognome,80,stdin);
+							fflush(stdin);
+							printf("Inserire il user:");
+							fgets(admin_to_add.user,80,stdin);
+							fflush(stdin);
+							printf("Inserire la password':");
+							fgets(admin_to_add.password,80,stdin);
+							fflush(stdin);
+							printf("Inserire la data di nascita [gg mm aa]:");
+							scanf("%2d %2d %4d",&admin_to_add.data_nascita.giorno,&admin_to_add.data_nascita.mese,&admin_to_add.data_nascita.anno);
+							app=aggiungi_admin(admin_to_add);
+							controllo_funzioni(app,'r');
+							printf("desidera aggiungere altri admin?[si/no]\n");
+							scanf("%s",scelta_3);
+							//system("cls");
+						}while(controllo_input(scelta_3));
 					} 	
 					break;
 				case 2:
@@ -1130,7 +1156,7 @@ int controllo_nome(char *txt,char *nome){
 	int risultato=0;
 	char string_f[200];
 	while(fgets(string_f,200,in)!=NULL && risultato!=-1){
-		if(strcmp(txt,"user.csv")==0){
+		if(strcmp(txt,"user.csv")==0 || strcmp(txt,"admin.csv")==0){
 			app.id=atoi(strtok(string_f,";"));
 			strcpy(app.nome,strtok(NULL,";"));
 			strcpy(app.cognome,strtok(NULL,";"));
@@ -1222,3 +1248,43 @@ bool controllo_file_preferenze(char * string){
 	}
 	return risultato;
 }
+
+bool aggiungi_admin(struct utente admin){
+	bool condizione,var1=false,app2=true;
+	int app,risultato;
+	condizione=true;
+	FILE *in;
+	app=controllo_nome("admin.csv",strtok(admin.user,"\n"));
+	app2=controllo_data_nascita(admin.data_nascita);
+	if(app==-1 && !app2)
+		condizione=false;
+	if(condizione){
+		in=fopen("admin.csv","a");
+		time_t rawtime;
+	 	time (&rawtime);
+	    struct tm* time;
+	    time = localtime(&rawtime);
+		risultato=fprintf(in,"%d;%s;%s;%s;%s;%d;%d;%d;%d;%d;%d\n",app+1,strtok(admin.nome,"\n"),strtok(admin.cognome,"\n"),admin.user,strtok(admin.password,"\n"),
+		admin.data_nascita.giorno,admin.data_nascita.mese,admin.data_nascita.anno,time->tm_mday,time->tm_mon,time->tm_year+1900);
+		if(risultato>0)
+			var1=true;
+	}
+	return var1;
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
