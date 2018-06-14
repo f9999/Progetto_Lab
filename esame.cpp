@@ -36,9 +36,8 @@ struct artista {
 };
 
 struct preferenza{
-	int id_utente;
-	char nome_artista[80];
-	bool preferenza;
+	int id_utente,id_artista;
+	char scelta[15];
 };
 
 int autenticazione(char *nome,char *password,char *txt);
@@ -64,7 +63,8 @@ bool preferenze_utente(char *txt);
 bool inserimento_ascolti_e_preferenze(int id_artista,int id_utente,char tipologia);
 bool controllo_file_preferenze(char * string);
 bool aggiungi_admin(struct utente admin);
-
+bool ordinamento_artisti(char tipologia);
+char controllo_risposta(char risposta[20]);
 
 
 int main(){
@@ -374,7 +374,7 @@ int main(){
 		}while(condizione_sw);	
 	}
 	if(user){
-		char risposta_user[10],*string_id,scelta_modifica_dati[10],continua[10];
+		char risposta_user[10],*string_id,scelta_modifica_dati[10],continua[10],var5;
 		int scelta;
 		struct utente dati_utente_log,utente_modificato;
 		printf("[1] Ricerca artista per ascolto o preferenza \n");
@@ -432,7 +432,14 @@ int main(){
 				}while(controllo_input(scelta_to_continue));
 				break;
 			case 2://ordinamento
-				printf("vuoi visualizzare la top 10 ascoltati?[][][]");//no Xd
+				do{
+					printf("vuoi visualizzare la top 10 ascoltati o piaciuti?[ascoltati/piaciuti]\n");
+					fflush(stdin);
+					fgets(risposta,100,stdin);
+				}while((var5=controllo_risposta(risposta))=='r');
+				ordinamento_artisti(var5);
+				// inserire coso che fa fflush stroka e mamita pure.,
+				
 				break;
 			case 3://visualizzazione profilo
 				printf("Desideri visualizzare il tuo profilo?[si/no]\n");
@@ -1100,7 +1107,7 @@ bool ricerca_artisti(char *string,char tipo,int id_utente){
 		printf("Forse cercavi:\n");
 		printf("pt. ID             NOME      PRODUTTORE         NAZIONE ANNO INIZIO        GENERE/I\n");
 		for(int i=n-1;i>=0 && condizione_secondo_ciclo;i--){
-			if(classifica[i].punti==max || (max-classifica[i].punti)==1){//regole di visualizzazione
+			if((classifica[i].punti==max || (max-classifica[i].punti)==1) && classifica[i].punti>3){//regole di visualizzazione
 				printf("[%d] ",h);
 				stampa_struct_artista(classifica[i].array);
 				h++;
@@ -1342,22 +1349,95 @@ bool aggiungi_admin(struct utente admin){
 	return var1;
 }
 
+bool ordinamento_artisti(char tipologia){
+	FILE *in;
+	in=fopen("preferenze_ascolto.csv","r");
+	struct preferenza var[100];
+	struct pd{
+		int num_roba=0;
+		struct artista art;
+	};
+	char string_f[200],var1[15];
+	int n_pr=0,n_art=0;
+	struct pd cipolla[100],app;
+	
+	bool condizione;
+	
+	if(tipologia=='a')
+		strcpy(var1,"ascoltato");
+	if(tipologia=='p')
+		strcpy(var1,"like");
+	
+	for(int i=0;fgets(string_f,200,in)!=NULL;i++){
+		var[i].id_utente=atoi(strtok(string_f,";"));
+		var[i].id_artista=atoi(strtok(NULL,";"));
+		strcpy(var[i].scelta,strtok(NULL,";"));
+		n_pr++;
+	}
+	fclose(in);
+	in=fopen("artisti.csv","r");
+	
+	for(int i=0;fgets(string_f,200,in)!=NULL;i++){
+		cipolla[i].art=string_to_struct_artista(string_f);
+		
+		n_art++;
+	}
+	fclose(in);
+	
+	
+	
+	//top 10 ascoltati
+	for(int i=0;i<n_pr;i++){
+		condizione=true;
+		if(strcmp(strtok(var[i].scelta,"\n"),var1)==0){
+			for(int j=0;j<n_art;j++){
+				if(cipolla[j].art.id==var[i].id_artista){
+					condizione=false;
+					cipolla[j].num_roba++;
+				}	
+			}
+		}
+	}
 
+	//ordinamento 666
+	int min=0,j;
+	for(int i=0;i<n_art-1;i++){
+		min=i;
+		for(j=i+1;j<n_art;j++){
+			if(cipolla[j].num_roba<cipolla[min].num_roba){
+				min=j;
+			}
+			app=cipolla[min];
+			cipolla[min]=cipolla[i];
+			cipolla[i]=app;	
+		}
+		
+	}
+	
+	for(int i=n_art-1;i>=0;i--){
+		printf("%s n %s=%d\n",cipolla[i].art.nome,var1,cipolla[i].num_roba);
+	}
+	
+	
+	
+	
+	
+	
+	
+	
+	return true;
+	
+	
+}
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+char controllo_risposta(char risposta[20]){
+	char condizione='r';
+	strtok(risposta,"\n");
+	if(strcmp(risposta,"ascoltati")==0){
+		condizione='a';
+	}
+	else if (strcmp(risposta,"piaciuti")==0 && condizione){
+				condizione='p';
+			}
+ return condizione;
+}
