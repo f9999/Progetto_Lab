@@ -17,14 +17,11 @@ struct utente {
 	char cognome[80];
 	char user[80];
 	char password[80];
+	char tipo[10];
 	struct data data_nascita;
 	struct data data_iscrizione;
 	
 };
-
-
-
-
 struct artista {
 	int id;
 	char nome[80];
@@ -34,13 +31,12 @@ struct artista {
 	char nazione[80];
 	int anno_inizio;
 };
-
 struct preferenza{
 	int id_utente,id_artista;
 	char scelta[15];
 };
 
-int autenticazione(char *nome,char *password,char *txt);
+struct utente autenticazione(char *nome,char *password);
 bool registrazione(struct utente utente);
 bool aggiungi_artista(struct artista artista);
 bool controllo_funzioni(bool app,char tipologia);
@@ -70,7 +66,7 @@ char controllo_risposta(char risposta[20]);
 int main(){
 	
 	char nome[80],password[80],utente_file[80],cognome[80], *txt_admin="admin.csv",*txt_utente="user.csv",*txt_artisti="artisti.csv";
-	struct utente utenti[MAX],utente_registrato,admin_loggato;
+	struct utente utenti[MAX],utente_registrato,admin_loggato,var;
 	struct artista artisti[MAX],artista;
 	struct preferenza prefereza_utenti[MAX];
 	int risposta,risposta_aut,numero;
@@ -78,66 +74,33 @@ int main(){
 	bool condizione=true,app=NULL,admin=false,user=false;
 	char *string_pd,dio[200],appogio[200];
 	struct utente utente_log;
-	do{
-		printf("Utente o admin? [0/1]\n");
-		scanf("%d",&risposta);	
-	}while( risposta<0 || risposta>1 );
 	//system("cls");
-	
+	printf("Login o registrazione?[0/1]\n");
+	scanf("%d",&risposta);
 	do{
-		
-		if(risposta==1){
+		if(risposta==0){
 			printf("inserisci utente e password\n");
 			scanf("%s %s", nome,password);
-			//system("cls");
-			id_lol=autenticazione(nome,password,txt_admin);
+			var=autenticazione(nome,password);
 			//condizione=controllo_funzioni(app,'l');
-			if(id_lol==-1){
+			if(var.id==-1){
 				continue;
 			}
-			if(id_lol>=0){
-				admin=true;
+			if(var.id!=-1){
 				condizione=false;
-			}
-				
+			}	
 		}
-		if(risposta==0){
-			printf("Registrazione o login[0,1]\n");
-			scanf("%d",&risposta_aut);
+		if(risposta==1){
+			printf("Inserire il nome,cognome,user,password e data di nascita[<nome> <cognome> <user> <password> <gg mm aa>]\n");
+			scanf("%s %s %s %s %d %d %d",utente_registrato.nome,utente_registrato.cognome,utente_registrato.user,utente_registrato.password,
+			&utente_registrato.data_nascita.giorno,&utente_registrato.data_nascita.mese,&utente_registrato.data_nascita.anno);
 			//system("cls");
-			if(risposta_aut==1){
-				do{
-					printf("inserisci utente e password\n");
-					scanf("%s %s", nome,password);
-					//system("cls");
-					id_lol=autenticazione(nome,password,txt_utente);
-					if(id_lol==-1){
-						continue;
-					}
-					else {
-					//strcpy(appogio,string_pd);
-					//utente_log=string_to_struct_utente(appogio);
-						user=true;
-						condizione=false;
-					}
-				}while(condizione);
-				//printf("Benvenuto %s %s\n",utente_log.nome,utente_log.cognome);
-				//condizione=controllo_funzioni(app,'l');
-			}
-			if(risposta_aut==0){
-				printf("Inserire il nome,cognome,user,password e data di nascita[<nome> <cognome> <user> <password> <gg mm aa>]\n");
-				scanf("%s %s %s %s %d %d %d",utente_registrato.nome,utente_registrato.cognome,utente_registrato.user,utente_registrato.password,
-				&utente_registrato.data_nascita.giorno,&utente_registrato.data_nascita.mese,&utente_registrato.data_nascita.anno);
-				//system("cls");
-				app=registrazione(utente_registrato);
-				condizione=controllo_funzioni(app,'r');
-			}
+			strcpy(utente_registrato.tipo,"user");
+			app=registrazione(utente_registrato);
+			condizione=controllo_funzioni(app,'r');
 		}
-		
-		
-			
-		
 	}while(condizione);
+	
 	
 	int scelta_1,scelta_2,n;
 	char scelta_3[20];
@@ -145,7 +108,7 @@ int main(){
 	char string[20];
 	struct artista artista_da_modificare,artista_modificato;
 	struct utente admin_to_add;
-	if(admin){
+	if(strcmp(var.tipo,"admin")==0){
 		do{
 			printf("[1] per aggiungere, modificare o eliminare degli artisti \n");
 			printf("[2] per aggiungere, modificare o eliminare degli utenti \n");
@@ -233,6 +196,7 @@ int main(){
 							fflush(stdin);
 							printf("Inserire la data di nascita [gg mm aa]:");
 							scanf("%2d %2d %4d",&admin_to_add.data_nascita.giorno,&admin_to_add.data_nascita.mese,&admin_to_add.data_nascita.anno);
+							strcpy(admin_to_add.tipo,"admin");
 							app=aggiungi_admin(admin_to_add);
 							controllo_funzioni(app,'r');
 							printf("desidera aggiungere altri admin?[si/no]\n");
@@ -373,7 +337,7 @@ int main(){
 			}
 		}while(condizione_sw);	
 	}
-	if(user){
+	if(strcmp(var.tipo,"user")==0){
 		char risposta_user[10],*string_id,scelta_modifica_dati[10],continua[10],var5;
 		int scelta;
 		struct utente dati_utente_log,utente_modificato;
@@ -502,7 +466,7 @@ bool registrazione(struct utente utente){
 	 	time (&rawtime);
 	    struct tm* time;
 	    time = localtime(&rawtime);
-		app=fprintf(out,"%d;%s;%s;%s;%s;%d;%d;%d;%d;%d;%d\n",id,utente.nome,utente.cognome,utente.user,utente.password,
+		app=fprintf(out,"%d;%s;%s;%s;%s;%s;%d;%d;%d;%d;%d;%d\n",id,utente.nome,utente.cognome,utente.user,utente.password,utente.tipo,
 		utente.data_nascita.giorno,utente.data_nascita.mese,utente.data_nascita.anno,time->tm_mday,time->tm_mon,time->tm_year+1900);
 		fclose(out);
 	}
@@ -515,32 +479,28 @@ bool registrazione(struct utente utente){
 }
 	
 //funzionante per utenti e admin
-int  autenticazione(char *nome,char *password,char *txt){
+struct utente  autenticazione(char *nome,char *password){
 	int res=0,id,i=0,risultato;
 	bool condizione_admin=true;
+	struct utente var;
 	char nome_f[50],cognome_f[50],user_f[50],password_f[50],appoggio[200],string_f[200];
 	FILE *in;
-	in=fopen(txt,"r");
+	in=fopen("user.csv","r");
 	rewind(in);
 	
 	while(condizione_admin && fgets(string_f,200,in)!=NULL){
-		id=atoi(strtok(string_f,";"));
-		strcpy(nome_f,strtok(NULL,";"));
-		strcpy(cognome_f,strtok(NULL,";"));
-		strcpy(user_f,strtok(NULL,";"));
-		strcpy(password_f,strtok(NULL,";"));
-		if(strcmp(user_f,nome)==0)
-			if(strcmp(password_f,password)==0){
+		var=string_to_struct_utente(string_f);
+		if(strcmp(var.user,nome)==0)
+			if(strcmp(var.password,password)==0){
 				condizione_admin=false;
-				risultato=id;
 			}
 				
 	}	
 	if(condizione_admin){
-		risultato=-1;
+		var.id=-1;
 	}
 	fclose(in);
-	return risultato;			
+	return var;			
 }
 
 bool aggiungi_artista(struct artista artista){
@@ -705,6 +665,7 @@ struct utente string_to_struct_utente(char *string){
 	strcpy(origano.cognome,strtok(NULL,";"));
 	strcpy(origano.user,strtok(NULL,";"));
 	strcpy(origano.password,strtok(NULL,";"));
+	strcpy(origano.tipo,strtok(NULL,";"));
 	origano.data_nascita.giorno=atoi(strtok(NULL,";"));
 	origano.data_nascita.mese=atoi(strtok(NULL,";"));
 	origano.data_nascita.anno=atoi(strtok(NULL,";"));
@@ -991,7 +952,6 @@ bool modifica_file_utenti(struct utente modificato,char tipologia,char *txt){
 	return risultato;	
 }
 
-//inserire ricerca per anno grz;;
 bool ricerca_artisti(char *string,char tipo,int id_utente){
 	struct artista array[MAX];
 	struct punti{
@@ -1132,8 +1092,9 @@ bool ricerca_artisti(char *string,char tipo,int id_utente){
 				citronella=false;		
 		}while(citronella);
 		if(strcmp(strtok(risposta,"\n"),"ascolto")==0){
-			printf("Hai appena ascoltato:%s\n",classifica[n-(1+pt)].array.nome);
 			risultato=inserimento_ascolti_e_preferenze(classifica[n-(1+pt)].array.id,id_utente,'a');
+			if(risultato)
+				printf("Hai appena ascoltato:%s\n",classifica[n-(1+pt)].array.nome);
 			controllo_funzioni(risultato,'a');
 		}
 				
@@ -1168,8 +1129,9 @@ bool ricerca_artisti(char *string,char tipo,int id_utente){
 		}while(citronella);
 
 		if(strcmp(strtok(risposta,"\n"),"ascolto")==0){
-			printf("Hai appena ascoltato:%s\n",classifica[posizione_vettore].array.nome);
 			risultato=inserimento_ascolti_e_preferenze(id_artista,id_utente,'a');
+			if(risultato)
+				printf("Hai appena ascoltato:%s\n",classifica[posizione_vettore].array.nome);
 			controllo_funzioni(risultato,'a');
 		}
 		if(strcmp(strtok(risposta,"\n"),"preferenza")==0){
@@ -1198,7 +1160,10 @@ int algoritmo_ricerca(char *text,char *pattern){
 	int m,punteggio_parziale,punteggio_finale;
 	lung_string_ricerca=strlen(text);
 	lung_pattern=strlen(pattern);
-	differenza_lunghezze=lung_string_ricerca-lung_pattern;
+	if(lung_string_ricerca>=lung_pattern)		
+		differenza_lunghezze=lung_string_ricerca-lung_pattern;
+	else
+		differenza_lunghezze=lung_pattern-lung_string_ricerca;
 	for(int j=0;j<=differenza_lunghezze;j++){
 		m=0;
 		punteggio_parziale=0;
@@ -1223,7 +1188,6 @@ int algoritmo_ricerca(char *text,char *pattern){
 	}
 	return punteggio_finale;
 }
-
 
 int controllo_nome(char *nome,char *txt){
 	FILE *in;
@@ -1290,20 +1254,32 @@ bool controllo_data_nascita(struct data b_day){
 	return risultato;
 }
 
-
 bool inserimento_ascolti_e_preferenze(int id_artista,int id_utente,char tipologia){
 	FILE *out;
-	int app;
-	bool risultato,controllo;
-	char string_f[200];
-	out=fopen("preferenze_ascolto.csv","a");
-	if(tipologia=='a')
+	int app=-1;
+	bool risultato,controllo=false,controllo_l,controllo_d;
+	char string_f[200],string_l[200],string_d[200];
+	
+	if(tipologia=='a'){
 		sprintf(string_f,"%d;%d;ascoltato\n",id_utente,id_artista);
-	if(tipologia=='l')
-		sprintf(string_f,"%d;%d;like\n",id_utente,id_artista);
-	if(tipologia=='d')
-		sprintf(string_f,"%d;%d;dislike\n",id_utente,id_artista);
-	controllo=controllo_file_preferenze(string_f);
+		controllo=controllo_file_preferenze(string_f);
+	}
+	if(tipologia=='l' || tipologia=='d'){
+		sprintf(string_l,"%d;%d;like\n",id_utente,id_artista);
+		controllo_l=controllo_file_preferenze(string_l);
+		if(controllo_l){
+			sprintf(string_d,"%d;%d;dislike\n",id_utente,id_artista);
+			controllo_d=controllo_file_preferenze(string_d);
+			if(controllo_d && controllo_d){
+				controllo=true;
+				if(tipologia=='l')
+					strcpy(string_f,string_l);
+				if(tipologia=='d')
+					strcpy(string_f,string_d);				
+			}
+		}
+	}
+	out=fopen("preferenze_ascolto.csv","a");
 	if(controllo)
 		app=fprintf(out,string_f);	
 	if(app>0)
@@ -1320,7 +1296,7 @@ bool controllo_file_preferenze(char * string){
 	bool risultato=true;
 	char string_f[200];
 	while(fgets(string_f,200,in)!=NULL && risultato){
-		if(strcmp(strtok(string,"\n"),string_f)==0)
+		if(strcmp(strtok(string,"\n"),strtok(string_f,"\n"))==0)
 			risultato=false;
 	}
 	return risultato;
