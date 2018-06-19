@@ -37,7 +37,8 @@ struct preferenza{
 };
 
 struct utente autenticazione(char *nome,char *password);
-int registrazione(struct utente utente);
+struct utente input_registrazione();
+bool registrazione(struct utente utente);
 bool aggiungi_artista(struct artista artista);
 bool controllo_funzioni(bool app,char tipologia);
 bool visualizza_elenco(char tipologia,char *txt);
@@ -64,6 +65,7 @@ bool ascolti_or_preferenze(int id_utente,int id_artista,char *nome_artista);
 char* to_minuscolo(char *string);
 struct preferenza string_to_struct_preferenza(char *string);
 bool preferenze_e_ascolti_utente(int id_utente);
+bool elimina_preferenze(int id,char tipologia);
 
 int main(){
 	
@@ -72,8 +74,8 @@ int main(){
 	struct artista artisti[MAX],artista;
 	struct preferenza prefereza_utenti[MAX];
 	int risposta,risposta_aut,numero;
-	int giorno,mese,anno,id_lol,varr=0,app;
-	bool condizione=true,admin=false,user=false;
+	int giorno,mese,anno,id_lol,varr=0;
+	bool condizione=true,admin=false,user=false,app;
 	char *string_pd,dio[200],appogio[200],risposta_primaria[100],var12;
 	struct utente utente_log;
 
@@ -85,39 +87,26 @@ int main(){
 		var12=controllo_risposta(risposta_primaria,'z');
 	}while(var12=='r');
 	do{		
-			if(var12=='x'){
-					risposta=1;
-					printf("\t\t\t\t\t-----REGISTRAZIONE-----\n");
-				}
-					else if(var12=='y'){
-						printf("\t\t\t\t\t-----LOGIN-----\n");
-						printf("inserisci user e password\n");
-						scanf("%s %s",nome, password);
-						var=autenticazione(nome,password);
-						if(var.id!=-1){
-							controllo_funzioni(true,'l');
-							printf("Benvenuto %s\n",var.nome);
-							condizione=false;
-						}
-							
+		if(var12=='y'){
+			printf("\t\t\t\t\t-----LOGIN-----\n");
+			printf("inserisci user e password\n");
+			scanf("%s %s",nome, password);
+			var=autenticazione(nome,password);
+			if(var.id!=-1){
+				controllo_funzioni(true,'l');
+				printf("Benvenuto %s\n",var.nome);
+				condizione=false;
+			}				
 		}
-		if(risposta==1){
-			printf("Inserire il nome,cognome,user,password e data di nascita[<nome> <cognome> <user> <password> <gg mm aa>]\n");
-			printf("N.B. : e' possibile iscriversi solo se l'utente ha un'eta' dai 18 ai 100 anni\n");
-			scanf("%s %s %s %s %d %d %d",utente_registrato.nome,utente_registrato.cognome,utente_registrato.user,utente_registrato.password,
-			&utente_registrato.data_nascita.giorno,&utente_registrato.data_nascita.mese,&utente_registrato.data_nascita.anno);
-			//system("cls");
-			strcpy(utente_registrato.tipo,"user");
+		if(var12=='x'){
+			printf("\t\t\t\t\t-----REGISTRAZIONE-----\n");
+			utente_registrato=input_registrazione();
 			app=registrazione(utente_registrato);
-			if(app!=-1){
-				controllo_funzioni(true,'r');
+			if(app){
 				var=utente_registrato;
-				var.id=app;
 				condizione=false;	
 			}
-			else{
-				controllo_funzioni(false,'r');
-			}
+			controllo_funzioni(app,'r');
 				
 		}
 	}while(condizione);
@@ -188,43 +177,23 @@ int main(){
 						}while(controllo_input(scelta_3));
 					}
 					else if(scelta_1==2){ 
-						do{
-							printf("Inserire il nome,cognome,user,password e data di nascita[<nome> <cognome> <user> <password> <gg mm aa>]\n");
-							scanf("%s %s %s %s %d %d %d",utente_registrato.nome,utente_registrato.cognome,utente_registrato.user,utente_registrato.password,
-							&utente_registrato.data_nascita.giorno,&utente_registrato.data_nascita.mese,&utente_registrato.data_nascita.anno);
+						do{					
+							utente_registrato=input_registrazione();
 							varr=registrazione(utente_registrato);
-							if(varr!=-1){
-								controllo_funzioni(app,'r');
-							}
-							else
-								continue;								
+							controllo_funzioni(varr,'r');							
 							printf("desidera aggiungere altri utenti?[si/no]\n");
 							scanf("%s",scelta_3);
 							//system("cls");
 						}while(controllo_input(scelta_3)); 
 					}
 					else if(scelta_1==3){
-						do{			
-							fflush(stdin);
-							printf("Inserire il nome:");
-							fgets(admin_to_add.nome,80,stdin);
-							printf("Inserire il cognome:");
-							fflush(stdin);
-							fgets(admin_to_add.cognome,80,stdin);
-							fflush(stdin);
-							printf("Inserire il user:");
-							fgets(admin_to_add.user,80,stdin);
-							fflush(stdin);
-							printf("Inserire la password':");
-							fgets(admin_to_add.password,80,stdin);
-							fflush(stdin);
-							printf("Inserire la data di nascita [gg mm aa]:");
-							scanf("%2d %2d %4d",&admin_to_add.data_nascita.giorno,&admin_to_add.data_nascita.mese,&admin_to_add.data_nascita.anno);
+						do{
+							admin_to_add=input_registrazione();
 							strcpy(admin_to_add.tipo,"admin");
 							app=registrazione(admin_to_add);
 							controllo_funzioni(app,'r');
 							printf("desidera aggiungere altri admin?[si/no]\n");
-							scanf("%s",scelta_3);
+							scanf("%3s",scelta_3);
 							//system("cls");
 						}while(controllo_input(scelta_3));
 					} 	
@@ -327,6 +296,8 @@ int main(){
 							scanf("%d",&id_to_delete);
 							appoggio.id=id_to_delete;
 							app=modifica_file_artisti(appoggio,'e');
+							if(app)
+								app=elimina_preferenze(id_to_delete,'a');
 							controllo_funzioni(app,'e');
 							printf("Desideri eliminare altri artisti?[si/no]\n");
 							scanf("%s",scelta_to_continue);
@@ -345,6 +316,8 @@ int main(){
 							scanf("%d",&id_to_delete);
 							appoggio.id=id_to_delete;
 							app=modifica_file_utenti(appoggio,'e');
+							if(app)
+								app=elimina_preferenze(id_to_delete,'u');						
 							controllo_funzioni(app,'e');
 							printf("Desideri eliminare altri utenti?[si/no]\n");
 							scanf("%s",scelta_to_continue);
@@ -443,6 +416,19 @@ int main(){
 						app=modifica_file_utenti(utente_modificato,'m');
 						controllo_funzioni(app,'m');
 					}
+					printf("Vuoi eliminare il tuo profilo?[si/no]\n");
+					fflush(stdin);
+					fgets(risposta,3,stdin);
+					if(controllo_input(strtok(risposta,"\n"))){
+						app=modifica_file_utenti(var,'e');
+						if(app)
+							app=elimina_preferenze(var.id,'u');
+						controllo_funzioni(app,'e');
+						condizione_do=true;
+						continue;
+					}
+						
+					
 				}
 				
 				preferenze_e_ascolti_utente(var.id);
@@ -466,36 +452,113 @@ int main(){
 			
 	}
 
+
+struct utente input_registrazione(){
+	struct utente app;
+	int var=-1;
+	char string_f[100],*pt;
+	bool condizione=true;
+	printf("Inserire il nome:");
+	fflush(stdin);
+	fgets(string_f,40,stdin);
+	strcpy(app.nome,strtok(string_f,"\n"));
+	printf("Inserire il cognome:");
+	fflush(stdin);
+	fgets(string_f,40,stdin);
+	strcpy(app.cognome,strtok(string_f,"\n"));
+	printf("Inserire l'user(senza spazi):");
+	do{
+		fflush(stdin);
+		fgets(string_f,40,stdin);
+		strcpy(app.user,strtok(string_f,"\n"));
+		pt=strtok(string_f," ");
+		if(strcmp(pt,app.user)!=0){
+			printf("Reinserire l'user'(senza spazi):");
+			continue;	
+		}
+		var=controllo_nome(app.user,"user.csv");
+		if(var==-1)
+			printf("User gia' in uso\nReinserire l'user'(senza spazi):");
+		else{
+			app.id=var+1;
+		}		
+	}while(var==-1);
+	
+	do{
+		printf("Inserire la password(Minimo 6 caratteri):");
+		fflush(stdin);
+		fgets(string_f,40,stdin);
+		strcpy(app.password,strtok(string_f,"\n"));	
+	}while(strlen(app.password)<6);
+	
+	do{
+		app.data_nascita.giorno=1;
+		app.data_nascita.mese=1;
+		app.data_nascita.anno=1999;
+		do{
+			printf("Inserire il giorno di nascita(1-31):");
+			fflush(stdin);
+			fgets(string_f,3,stdin);
+			app.data_nascita.giorno=atoi(string_f);
+			printf("%d\n",app.data_nascita.giorno);
+			if(!controllo_data_nascita(app.data_nascita)){
+				printf("Reinserisci\n");
+				condizione=false;
+			}
+			else
+				condizione=true;
+		}while(!condizione);
+		
+		do{
+			printf("Inserire il mese di nascita(0-12):");
+			fflush(stdin);
+			fgets(string_f,3,stdin);
+			app.data_nascita.giorno=atoi(string_f);
+			if(!controllo_data_nascita(app.data_nascita)){
+				printf("Reinserisci\n");
+				condizione=false;
+			}
+			else
+				condizione=true;
+		}while(!condizione);
+		do{
+			printf("Inserire l'anno di nascita(1900-2000):");
+			fflush(stdin);
+			fgets(string_f,5,stdin);
+			app.data_nascita.anno=atoi(string_f);
+			if(!controllo_data_nascita(app.data_nascita)){
+				printf("Reinserisci\n");
+				condizione=false;
+			}
+			else
+				condizione=true;	
+		}while(!condizione);
+	}while(!controllo_data_nascita(app.data_nascita));
+	strcpy(app.tipo,"user");	
+	return app;
+}
+
 //funzionante per utenti
-int registrazione(struct utente utente){
+bool registrazione(struct utente utente){
 	char nome[80],cognome[80],user[80],string_f[200];
 	int id=0,res,app=0;
-	int risultato=0;
-	bool condizione=true;
+	bool condizione=true,risultato;
 	id=controllo_nome(utente.user,"user.csv");
-	if(id==-1)
-		condizione=false;
-	app=controllo_data_nascita(utente.data_nascita);
-	if(!app)
-		condizione=false;
-	if(condizione){
-		FILE *out;
-		out=fopen("user.csv","a");
-		time_t rawtime;
-	 	time (&rawtime);
-	    struct tm* time;
-	    time = localtime(&rawtime);
-		app=fprintf(out,"%d;%s;%s;%s;%s;%s;%d;%d;%d;%d;%d;%d\n",id+1,utente.nome,utente.cognome,utente.user,utente.password,utente.tipo,
-		utente.data_nascita.giorno,utente.data_nascita.mese,utente.data_nascita.anno,time->tm_mday,time->tm_mon+1,time->tm_year+1900);
-		fclose(out);
-	}
-	if(app>0 && condizione){
-		risultato=id+1;
-		printf("entro in questo coso insomma\n");
+	FILE *out;
+	out=fopen("user.csv","a");
+	time_t rawtime;
+ 	time (&rawtime);
+    struct tm* time;
+    time = localtime(&rawtime);
+	app=fprintf(out,"%d;%s;%s;%s;%s;%s;%d;%d;%d;%d;%d;%d\n",utente.id,utente.nome,utente.cognome,utente.user,utente.password,utente.tipo,
+	utente.data_nascita.giorno,utente.data_nascita.mese,utente.data_nascita.anno,time->tm_mday,time->tm_mon+1,time->tm_year+1900);
+	fclose(out);
+	if(app>0){
+		risultato=true;
 	}
 		
 	else
-		risultato=-1;
+		risultato=false;
 	return risultato;
 	
 }
@@ -1043,9 +1106,10 @@ bool ricerca_artisti(char *string,char tipo,int id_utente){
 				if(punteggio_generi==lung_pattern && lung_pattern==lung_string_ricerca){
 					if(condizione_secondo_ciclo){
 						printf("Genere trovato \n");	
-						printf("pt. ID             NOME       PRODUTTORE         NAZIONE ANNO INIZIO       GENERE/I\n");
+						printf(" ID             NOME       PRODUTTORE         NAZIONE ANNO INIZIO       GENERE/I\n");
 					}					
 					h=classifica[i].array.numero_generi;
+					vettore_posizioni[classifica[i].array.id]=classifica[i].array.id;
 					xd++;
 					stampa_struct_artista(classifica[i].array);
 					condizione_secondo_ciclo=false;
@@ -1093,13 +1157,14 @@ bool ricerca_artisti(char *string,char tipo,int id_utente){
 		h=0;
 		if(max>=3){
 			printf("Forse cercavi:\n");
-			printf("pt. ID             NOME      PRODUTTORE         NAZIONE ANNO INIZIO        GENERE/I\n");
-			
+			printf(" ID             NOME      PRODUTTORE         NAZIONE ANNO INIZIO        GENERE/I\n");
+			var=true;
+			h=1;
 			for(int i=n-1;i>=0 && condizione_secondo_ciclo;i--){
 				if((classifica[i].punti==max || (max-classifica[i].punti)==1) && classifica[i].punti>=3){//regole di visualizzazione
 					stampa_struct_artista(classifica[i].array);
-					h++;
-					
+					xd++;
+					vettore_posizioni[classifica[i].array.id]=classifica[i].array.id;
 				}	
 			}		
 		}
@@ -1117,7 +1182,7 @@ bool ricerca_artisti(char *string,char tipo,int id_utente){
 			var1=true;
 			printf("Che artista stai cercando?(<ID>)\n");
 			scanf("%d",&pt);
-		}while((pt>xd || pt<0) && pt!=-1);
+		}while(vettore_posizioni[pt]!=pt);
 		if(pt!=-1)
 			ascolti_or_preferenze(id_utente,pt,classifica[pt].array.nome);
 		}
@@ -1209,10 +1274,11 @@ int controllo_nome(char *nome,char *txt){
 	char string_f[200];
 	while(fgets(string_f,200,in)!=NULL && risultato!=-1){
 		if(strcmp(txt,"user.csv")==0){
-			risultato=app.id=atoi(strtok(string_f,";"));
+			app.id=atoi(strtok(string_f,";"));
 			strcpy(app.nome,strtok(NULL,";"));
 			strcpy(app.cognome,strtok(NULL,";"));
 			strcpy(app.user,strtok(NULL,";"));
+			risultato=app.id;
 			if(strcmp(app.user,strtok(nome,"\n"))==0)
 				risultato=-1;		
 		}
@@ -1233,9 +1299,9 @@ bool controllo_data_nascita(struct data b_day){
     struct tm* time;
     time = localtime(&rawtime);
     bool risultato=true;
-	if(b_day.giorno<0 || b_day.giorno>31)
+	if(b_day.giorno<=0 || b_day.giorno>31)
 		risultato=false;
-	if(b_day.mese<0 || b_day.mese>12)
+	if(b_day.mese<=0 || b_day.mese>12)
 		risultato=false;
 	if(!(b_day.anno<=(time->tm_year+1900)-18 && b_day.anno>(time->tm_year+1800)))
 		risultato=false;			
@@ -1476,8 +1542,6 @@ char controllo_risposta(char risposta[20],char tipologia){
  return condizione;
 }
 
-
-
 char* to_minuscolo(char *string){
 	char *var;
 	int i, s=0;	
@@ -1519,7 +1583,7 @@ bool preferenze_e_ascolti_utente(int id_utente){
 		n_art++;
 	}
 	fclose(in);
-	printf("Ti piaccciono codesti artisti:\n");
+	printf("Hai messo like a questi artisti:\n");
 	for(int j=0;j<i;j++){
 		for(int k=0;k<n_art;k++){
 			if(array[j].id_artista==array_art[k].id)
@@ -1527,4 +1591,48 @@ bool preferenze_e_ascolti_utente(int id_utente){
 		}
 	}
 	return true;
+}
+
+bool elimina_preferenze(int id,char tipologia){
+	char string_f[100];
+	struct preferenza array[200],app;
+	int n=0,k=0,var=0;
+	bool risultato=false;
+	FILE *in,*out;
+	in=fopen("preferenze_ascolto.csv","r");
+	for(int i=0;fgets(string_f,99,in)!=NULL;i++){
+		app=string_to_struct_preferenza(string_f);
+		if(tipologia=='a'){
+			if(app.id_artista==id){
+				i--;
+				n--;
+			}
+			else
+				array[i]=app;
+		}
+		if(tipologia=='u'){
+			if(app.id_utente==id){
+				i--;
+				n--;			
+			}
+			else
+				array[i]=app;
+		}
+		n++;
+	}
+	fclose(in);
+	out=fopen("preferenze_ascolto.csv","w");
+	for(int i=0;i<n;i++){
+		var=fprintf(out,"%d;%d;%s\n",array[i].id_utente,array[i].id_artista,array[i].scelta);
+		if(var>0){
+			var=0;
+			k++;
+		}
+	}
+	if(k==n)
+		risultato=true;
+	else
+		risultato=false;
+	fclose(out);
+	return risultato;
 }
