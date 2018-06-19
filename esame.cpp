@@ -66,6 +66,7 @@ char* to_minuscolo(char *string);
 struct preferenza string_to_struct_preferenza(char *string);
 bool preferenze_e_ascolti_utente(int id_utente);
 bool elimina_preferenze(int id,char tipologia);
+bool modifica_preferenza(int id_artista,int id_utente,char tipologia);
 
 int main(){
 	
@@ -1174,10 +1175,12 @@ bool ricerca_artisti(char *string,char tipo,int id_utente){
 		var=false;		
 	}
 
-	if(!var)
+	if(!var){
 		printf("artista non trovato\n");
+	}
+		
 	
-	if(condizione_secondo_ciclo || condizione_generi){
+	if((condizione_secondo_ciclo || condizione_generi) && var){
 		do{
 			var1=true;
 			printf("Che artista stai cercando?(<ID>)\n");
@@ -1194,7 +1197,7 @@ bool ricerca_artisti(char *string,char tipo,int id_utente){
 
 bool ascolti_or_preferenze(int id_utente,int id_artista,char *nome_artista){
 	bool citronella,risultato,condizione;
-	char risposta[20];
+	char risposta[20],string[100];
 	do{
 		citronella=true;
 		printf("Vuoi ascoltare o lasciare una preferenza?[ascolto/preferenza]\n");
@@ -1210,10 +1213,33 @@ bool ascolti_or_preferenze(int id_utente,int id_artista,char *nome_artista){
 		risultato=inserimento_ascolti_e_preferenze(id_artista,id_utente,'a');
 		if(risultato)
 			printf("Hai appena ascoltato:%s\n",nome_artista);
+		else
+			printf("Hai gia' ascoltato questo artista.\n");
 		controllo_funzioni(risultato,'a');
 	}
 	if(strcmp(strtok(risposta,"\n"),"preferenza")==0){
 		do{
+			sprintf(string,"%d;%d;like\n",id_utente,id_artista);
+			if(controllo_file_preferenze(string)){
+				sprintf(string,"%d;%d;dislike\n",id_utente,id_artista);
+				if(controllo_file_preferenze(string))
+					risultato=true;
+				else{
+					inserimento_ascolti_e_preferenze(id_artista,id_utente,'l');
+					condizione=false;
+					continue;
+				}
+					
+			}
+			else{
+				inserimento_ascolti_e_preferenze(id_artista,id_utente,'d');
+				condizione=false;
+				continue;
+			}
+		
+					
+			
+			
 			printf("Like o dislike?[like/dislike]\n");
 			fflush(stdin);
 			fgets(risposta,100,stdin);
@@ -1226,7 +1252,7 @@ bool ascolti_or_preferenze(int id_utente,int id_artista,char *nome_artista){
 				risultato=inserimento_ascolti_e_preferenze(id_artista,id_utente,'d');
 				condizione=false;
 				controllo_funzioni(risultato,'d');
-				}
+			}
 		}while(condizione);
 	}
 }
@@ -1333,8 +1359,8 @@ bool controllo_data_nascita(struct data b_day){
 bool inserimento_ascolti_e_preferenze(int id_artista,int id_utente,char tipologia){
 	FILE *out;
 	int app=-1;
-	bool risultato,controllo=false,controllo_l,controllo_d;
-	char string_f[200],string_l[200],string_d[200];
+	bool risultato,controllo=false,controllo_l=false,controllo_d=false;
+	char string_f[200],string_l[200],string_d[200],risposta[20],var;
 	
 	if(tipologia=='a'){
 		sprintf(string_f,"%d;%d;ascoltato\n",id_utente,id_artista);
@@ -1346,12 +1372,38 @@ bool inserimento_ascolti_e_preferenze(int id_artista,int id_utente,char tipologi
 		if(controllo_l){
 			sprintf(string_d,"%d;%d;dislike\n",id_utente,id_artista);
 			controllo_d=controllo_file_preferenze(string_d);
-			if(controllo_d && controllo_d){
+			if(controllo_l && controllo_d){
 				controllo=true;
 				if(tipologia=='l')
 					strcpy(string_f,string_l);
 				if(tipologia=='d')
 					strcpy(string_f,string_d);				
+			}
+			else if(tipologia=='l' && !controllo_d){
+				printf("Vuoi inserire una preferenza opposta o eliminare?<scambia><elimina>-1\n");
+				fflush(stdin);
+				fgets(risposta,20,stdin);
+				if((var=controllo_risposta(risposta,'w'))=='s')
+					risultato=modifica_preferenza(id_artista,id_utente,'h');
+				if(var=='e')
+					risultato=modifica_preferenza(id_artista,id_utente,'e');			
+			}			
+		}
+		else if(tipologia=='d' && !controllo_l){
+			do{
+				printf("Vuoi inserire una preferenza opposta o eliminare?<scambia><elimina>-2\n");
+				fflush(stdin);
+				fgets(risposta,20,stdin);
+			}while(controllo_risposta(risposta,'w')=='r');
+			if(controllo_risposta(risposta,'w')=='s'){
+				printf("Vuoi modificare la tua preferenza?[si/no]\n");
+				fflush(stdin);
+				fgets(risposta,3,stdin);
+				if(controllo_input(risposta))
+					risultato=modifica_preferenza(id_artista,id_utente,'h');	
+			}
+			else if(controllo_risposta(risposta,'w')=='e'){
+					risultato=modifica_preferenza(id_artista,id_utente,'e');
 			}
 		}
 	}
@@ -1359,7 +1411,7 @@ bool inserimento_ascolti_e_preferenze(int id_artista,int id_utente,char tipologi
 	strcat(string_f,"\n");
 	if(controllo)
 		app=fprintf(out,string_f);	
-	if(app>0)
+	if(app>0 || risultato)
 		risultato=true;
 	else
 		risultato=false;
@@ -1470,7 +1522,7 @@ bool ordinamento_artisti(char tipologia,int id_utente){
 	}while(variabile=='r');
 	if(variabile=='a'){
 		do{
-			printf("Ke artista vuoi ascoltare?[posizione(1-10)]\n");
+			printf("Che artista vuoi ascoltare? inserisci una posizione da (1-10)]\n");
 			scanf("%d",&risposta);	
 		}while(risposta<1 || risposta>10);
 		controllo=inserimento_ascolti_e_preferenze(cipolla[(n_art-1)-(risposta-1)].art.id,id_utente,'a');
@@ -1485,7 +1537,7 @@ bool ordinamento_artisti(char tipologia,int id_utente){
 			scanf("%d",&risposta);	
 		}while(risposta<1 || risposta>10);
 		do{
-			printf("Like o Dislike?[like/dislike]\n");
+			printf("Like o Dislike?<like/dislike>\n");
 			fflush(stdin);
 			fgets(string,20,stdin);	
 			var2=controllo_risposta(string,'d');
@@ -1516,6 +1568,12 @@ char controllo_risposta(char risposta[20],char tipologia){
 					condizione='p';
 			}
 		break;
+		case 'd':
+			if(strcmp(risposta,"like"))
+				condizione='l';
+			if(strcmp(risposta,"dislike"))
+				condizione='d';
+		break;
 		case 'o':
 			if(strcmp(risposta,"no")==0)
 				condizione='n';
@@ -1523,6 +1581,12 @@ char controllo_risposta(char risposta[20],char tipologia){
 				condizione='a';
 			if(strcmp(risposta,"preferenza")==0)
 				condizione='p';
+		break;
+		case 'w':
+			if(strcmp(risposta,"scambia"))
+				condizione='s';
+			if(strcmp(risposta,"elimina"))
+				condizione='e';
 		break;
 		case 'z':
 			if(strcmp(risposta,"registrazione")==0){
@@ -1532,12 +1596,7 @@ char controllo_risposta(char risposta[20],char tipologia){
 				condizione='y';
 			}
 		break;
-		case 'd':
-			if(strcmp(risposta,"like"))
-				condizione='l';
-			if(strcmp(risposta,"dislike"))
-				condizione='d';
-		break;
+
 	}		
  return condizione;
 }
@@ -1616,9 +1675,56 @@ bool elimina_preferenze(int id,char tipologia){
 				n--;			
 			}
 			else
-				array[i]=app;
+				array[i] = app;
 		}
+		n++;	
+	
+	}
+
+	fclose(in);
+	out=fopen("preferenze_ascolto.csv","w");
+	for(int i=0;i<n;i++){
+		var=fprintf(out,"%d;%d;%s\n",array[i].id_utente,array[i].id_artista,array[i].scelta);
+		if(var>0){
+			var=0;
+			k++;
+		}
+	}
+	if(k==n)
+		risultato=true;
+	else
+		risultato=false;
+	fclose(out);
+	return risultato;
+}
+
+
+bool modifica_preferenza(int id_artista,int id_utente,char tipologia){
+	char condizione='r',string_f[100];
+	FILE *in,*out;
+	in=fopen("preferenze_ascolto.csv","r+");
+	struct preferenza array[100];
+	int n=0,var=0,k=0;
+	bool risultato=true;
+	for(int i=0;fgets(string_f,100,in)!=NULL;i++){
+		printf("entro nel for\n");
+		array[i]=string_to_struct_preferenza(string_f);
 		n++;
+		if(array[i].id_artista==id_artista && array[i].id_utente==id_utente){
+			printf("array[i].id_artista==id_artista && array[i].id_utente==id_utente\n");
+			if(strcmp(strtok(array[i].scelta,"\n"),"like")==0){
+				printf("cerco di scambiare il like con dislike\n");
+				strcpy(array[i].scelta,"dislike");
+			}
+			else if(strcmp(strtok(array[i].scelta,"\n"),"dislike")==0){
+				strcpy(array[i].scelta,"like");
+				} 
+				else if(tipologia=='e'){
+					i--;
+					n--;
+				}
+				
+		}
 	}
 	fclose(in);
 	out=fopen("preferenze_ascolto.csv","w");
