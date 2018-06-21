@@ -42,13 +42,13 @@ bool registrazione(struct utente utente);
 bool aggiungi_artista(struct artista artista);
 bool controllo_funzioni(bool app,char tipologia);
 bool visualizza_elenco(char tipologia,char *txt);
-char * visualizza_dati_id(int id, char *txt);
+char * visualizza_dati_id(int id, char *txt,char tipologia);
 struct artista string_to_struct_artista(char *string);
 struct utente string_to_struct_utente(char *string);
 struct artista modifica_dati_struct(struct artista to_modify);
 struct utente modifica_dati_struct_utente(struct utente to_modify);
 bool modifica_file_artisti(struct artista modificato,char tipologia);
-bool modifica_file_utenti(struct utente modificato,char tipologia);
+bool modifica_file_utenti(struct utente modificato,char tipologia,char tipologia2);
 void stampa_struct_artista(struct artista to_print);
 void stampa_struct_utente(struct utente to_print);
 bool ricerca_artisti(char *string,char tipo,int id_utente);
@@ -66,6 +66,7 @@ struct preferenza string_to_struct_preferenza(char *string);
 bool preferenze_e_ascolti_utente(int id_utente,char *tipo);
 bool elimina_preferenze(int id,char tipologia);
 bool modifica_preferenza(int id_artista,int id_utente,char tipologia);
+bool alfanumerico(char *string);
 
 int main(){
 	
@@ -105,7 +106,7 @@ int main(){
 			}				
 		}
 		if(var12=='x'){
-			printf("\t\t\t\t\t-----REGISTRAZIONE-----\n");
+			printf("---------------------REGISTRAZIONE---------------------\n");
 			utente_registrato=input_registrazione();
 			app=registrazione(utente_registrato);
 			if(app){
@@ -118,14 +119,14 @@ int main(){
 	}while(condizione);
 	
 	int scelta_1,scelta_2,n;
-	char scelta_3[20],mista[3];
-	bool condizione_sw=true;
+	char scelta_3[20],mista[20];
+	bool condizione_sw=true,condizione_alphanum;
 	char string[20],franco;
 	struct artista artista_da_modificare,artista_modificato;
 	struct utente admin_to_add;
 	if(strcmp(var.tipo,"admin")==0){
 		do{
-			printf("---------------------MENU'---------------------");
+			printf("---------------------MENU'---------------------\n");
 			printf("[1] Per aggiungere, modificare o eliminare degli artisti \n");
 			printf("[2] Per aggiungere, modificare o eliminare degli utenti \n");
 			printf("[3] Per aggiungere, modificare o eliminare admin\n");
@@ -135,11 +136,11 @@ int main(){
 			scelta_1=atoi(mista);
 			//system("cls");
 			if(scelta_1==1)
-				strcpy(string,"artista");
+				strcpy(string,"ARTISTA");
 			if(scelta_1==2)
-				strcpy(string,"utente");
+				strcpy(string,"UTENTE");
 			if(scelta_1==3)
-				strcpy(string,"admin");
+				strcpy(string,"ADMIN");
 			if(scelta_1==4){
 				condizione_sw=false;
 				continue;
@@ -148,7 +149,8 @@ int main(){
 				printf("Scelta non valida. Riprovare.\n");
 				continue;
 			}
-			printf("\n");	
+			printf("\n");
+			printf("---------------------MENU' %s---------------------\n",string);	
 			printf("[1] Per aggiungere un %s\n",string);
 			printf("[2] Per modificare un %s\n",string);
 			printf("[3] Per eliminare un %s\n",string);
@@ -160,19 +162,22 @@ int main(){
 			switch(scelta_2){
 				case 1:
 					if(scelta_1==1){
+						printf("---------------------AGGIUNTA %S---------------------",string);
 						do{			
 							fflush(stdin);
 							printf("Inserire il nome:");
 							fgets(artista.nome,80,stdin);
-							printf("Inserire numero di generi:");
-							fflush(stdin);
-							fgets(mista,3,stdin);
-							artista.numero_generi=atoi(mista);
-							for(int i=0;i<artista.numero_generi;i++){
+							do{
+								printf("Inserire numero di generi:");
 								fflush(stdin);
-								printf("Inserire il genere n.%d:",i+1);
-								fgets(artista.genere[i],80,stdin);
-							}
+								fgets(mista,3,stdin);
+								artista.numero_generi=atoi(mista);
+								for(int i=0;i<artista.numero_generi;i++){
+									fflush(stdin);
+									printf("Inserire il genere n.%d:",i+1);
+									fgets(artista.genere[i],80,stdin);
+								}
+							}while(alfanumerico(mista) && artista.numero_generi>0);
 							fflush(stdin);
 							printf("Inserire il produttore:");
 							fgets(artista.produttore,80,stdin);
@@ -189,7 +194,7 @@ int main(){
 							app=aggiungi_artista(artista);
 							controllo_funzioni(app,'r');
 							do{
-								printf("Desideri aggiungere altri artisti?<si/no>\n");
+								printf("Desideri aggiungere altri artisti?<si><no>\n");
 								fflush(stdin);
 								fgets(scelta_3,10,stdin);
 								franco=controllo_risposta(scelta_3,'q');
@@ -197,12 +202,13 @@ int main(){
 						}while(franco=='s');
 					}
 					else if(scelta_1==2){ 
+						printf("---------------------AGGIUNTA %s---------------------\n",string);
 						do{					
 							utente_registrato=input_registrazione();
 							varr=registrazione(utente_registrato);
 							controllo_funzioni(varr,'r');							
 							do{
-								printf("Desideri aggiungere altri utenti?<si/no>\n");
+								printf("Desideri aggiungere altri utenti?<si><no>\n");
 								fflush(stdin);
 								fgets(scelta_3,10,stdin);
 								franco=controllo_risposta(scelta_3,'q');
@@ -210,13 +216,15 @@ int main(){
 						}while(franco=='s');
 					}
 					else if(scelta_1==3){
+						//aggiunta ADMIN
+						printf("---------------------AGGIUNTA %s---------------------\n",string);
 						do{
 							admin_to_add=input_registrazione();
 							strcpy(admin_to_add.tipo,"admin");
 							app=registrazione(admin_to_add);
 							controllo_funzioni(app,'r');
 							do{
-								printf("Desideri aggiungere altri admin?<si/no>\n");
+								printf("Desideri aggiungere altri admin?<si><no>\n");
 								fflush(stdin);
 								fgets(scelta_3,10,stdin);
 								franco=controllo_risposta(scelta_3,'q');
@@ -229,19 +237,23 @@ int main(){
 					struct utente admin_modificato;
 					strcpy(continua,"1");
 					if(scelta_1==1){
-						printf("---------------------Modifica artisti--------------------- \n");
+						printf("---------------------MODIFICA ARTISTI--------------------- \n");
 						do{	
-							printf("desideri visualizzare l'elenco degli artisti iscritti?<si/no>\n");
+							printf("Desideri visualizzare l'elenco degli artisti iscritti?<si><no>\n");
 							fflush(stdin);
 							fgets(scelta_3,3,stdin);
 							if(controllo_risposta(scelta_3,'q')){
 								visualizza_elenco('a',txt_artisti);
 							}
-							printf("Inserisci l'ID dell'artista da modificare\n");
-							fflush(stdin);
-							fgets(mista,4,stdin);
-							numero=atoi(mista);
-							string_da_modificare=visualizza_dati_id(numero,txt_artisti);							
+							do{
+															
+								printf("Inserisci l'ID dell'artista da modificare<ID>\n");
+								fflush(stdin);
+								fgets(mista,4,stdin);
+								numero=atoi(mista);
+							}while(alfanumerico(mista) && numero<0 );
+								
+							string_da_modificare=visualizza_dati_id(numero,txt_artisti,'a');							
 							if(strcmp(string_da_modificare,"Errore")==0){
 								continue;
 								printf("Reniserisci.\n");
@@ -252,7 +264,7 @@ int main(){
 							app=modifica_file_artisti(artista_modificato,'m');
 							controllo_funzioni(app,'m');
 							do{
-								printf("Desideri continuare a modificare altre informazioni?<si/no>\n");
+								printf("Desideri continuare a modificare altre informazioni?<si><no>\n");
 								fflush(stdin);
 								fgets(continua,3,stdin);							
 							}while(controllo_risposta(continua,'q')=='r');
@@ -263,21 +275,24 @@ int main(){
 					else if(scelta_1==2) {
 						struct utente utente_da_modificare,utente_modificato;
 						char *string_da_modificare;
-						printf("---------------------Modifica utenti---------------------\n");
+						printf("---------------------MODIFICA UTENTI---------------------\n");
 						do{
 							condizione=false;
 							do{
-								printf("Desideri visualizzare l'elenco degli utenti iscritti?<si/no>\n");
+								printf("Desideri visualizzare l'elenco degli utenti iscritti?<si><no>\n");
 								fflush(stdin);
 								fgets(continua,3,stdin);									
 							}while(controllo_risposta(continua,'q')=='r');
 								if(controllo_risposta(scelta_3,'q')=='s')
 									visualizza_elenco('u',txt_utente);
-							printf("Inserisci l'ID dell'utente da modificare\n");
-							fflush(stdin);
-							fgets(mista,3,stdin);
-							numero=atoi(mista);
-							string_da_modificare=visualizza_dati_id(numero,txt_utente);
+							do{
+								printf("Inserisci l'ID dell'utente da modificare\n");
+								fflush(stdin);
+								fgets(mista,3,stdin);
+								numero=atoi(mista);	
+							}while(alfanumerico(mista) && numero<0);
+							
+							string_da_modificare=visualizza_dati_id(numero,txt_utente,'u');
 							if(strcmp(string_da_modificare,"Errore")==0){
 								printf("Reinserisci.\n");
 								condizione=true;
@@ -285,10 +300,10 @@ int main(){
 							}
 							utente_da_modificare=string_to_struct_utente(string_da_modificare);
 							utente_modificato=modifica_dati_struct_utente(utente_da_modificare);
-							app=modifica_file_utenti(utente_modificato,'m');
+							app=modifica_file_utenti(utente_modificato,'m','u');
 							controllo_funzioni(app,'m');
 							do{
-								printf("Desideri continuare a modificare altre informazioni?<si/no>\n");
+								printf("Desideri continuare a modificare altre informazioni?<si><no>\n");
 								fflush(stdin);
 								fgets(continua,3,stdin);
 							}while(controllo_risposta(continua,'q')=='r');
@@ -298,29 +313,37 @@ int main(){
 						do{
 							char *string_da_modificare;
 							struct utente admin_da_modificare;
-							printf("---------------------Modifica admin--------------------- \n");
+							printf("---------------------MODIFICA ADMIN--------------------- \n");
 							do{
-								printf("Desideri visualizzare l'elenco degli admin iscritti?<si/no>\n");
+								printf("Desideri visualizzare l'elenco degli admin iscritti?<si><no>\n");
 								fflush(stdin);
 								fgets(scelta_3,3,stdin);
 							}while(controllo_risposta(scelta_3,'q')=='r');	
 							if(controllo_risposta(scelta_3,'q')=='s'){
 								visualizza_elenco('s',txt_utente);
 							}
-							printf("Inserisci ID dell'utente da modificare\n");
-							fflush(stdin);
-							fgets(mista,3,stdin);
-							numero=atoi(mista);
-							string_da_modificare=visualizza_dati_id(numero,txt_utente);
-							if(strcmp(string_da_modificare,"Errore")==0){
-								printf("Ritenta.\n");
-								continue;
-							}
-							admin_da_modificare=string_to_struct_utente(string_da_modificare);
-							admin_modificato=modifica_dati_struct_utente(admin_da_modificare);			
-							app=modifica_file_utenti(admin_modificato,'m');
+							
 							do{
-							printf("Desideri continuare a modificare altre informazioni?<si/no>\n");
+								do{
+									printf("Inserire l'ID dell'admin da modificare:\n");
+									fflush(stdin);
+									fgets(mista,10,stdin);
+									fflush(stdin);
+									numero=atoi(mista);
+								}while(alfanumerico(mista) || numero<0);
+								string_da_modificare=visualizza_dati_id(numero,txt_utente,'s');
+								if(strcmp(string_da_modificare,"Errore")==0){
+									printf("Ritenta.\n");
+									continue;
+								}
+								admin_da_modificare=string_to_struct_utente(string_da_modificare);
+								admin_modificato=modifica_dati_struct_utente(admin_da_modificare);			
+								app=modifica_file_utenti(admin_modificato,'m','a');					
+																
+							}while(!app);
+							controllo_funzioni(app,'m');
+							do{
+							printf("Desideri continuare a modificare altre informazioni?<si><no>\n");
 								fflush(stdin);
 								fgets(continua,3,stdin);
 							}while(controllo_risposta(continua,'q')=='r');
@@ -328,61 +351,107 @@ int main(){
 					}			
 					break;
 				case 3:
+					printf("---------------------ELIMINA %s---------------------\n",string);
 					char scelta_elenco[3],scelta_to_continue[3];
 					
 					int id_to_delete;
 					if(scelta_1==1){
+						//elimina ARTISTI
 						struct artista appoggio;
 						do{
-							do{
-								printf("Desideri visualizzare l'elenco degli artisti?<si/no> \n");							
-								fflush(stdin);
-								fgets(scelta_elenco,3,stdin);
-							}while(controllo_risposta(scelta_elenco,'q')=='r');
-						}while(controllo_risposta(scelta_elenco,'q')=='s');
+							printf("Desideri visualizzare l'elenco degli artisti?<si><no> \n");							
+							fflush(stdin);
+							fgets(scelta_elenco,3,stdin);
+						}while(controllo_risposta(scelta_elenco,'q')=='r');
 						if(controllo_risposta(scelta_elenco,'q')=='s'){
 							visualizza_elenco('a',txt_artisti);
 						}
-							printf("Inserire l'ID dell'artista da eliminare:\n");
-							fflush(stdin);
-							fgets(mista,3,stdin);
-							id_to_delete=atoi(mista);
-							appoggio.id=id_to_delete;
-							app=modifica_file_artisti(appoggio,'e');
+						do{
+							do{
+								printf("Inserire l'ID dell'artista da eliminare:\n");
+								fflush(stdin);
+								fgets(mista,3,stdin);
+								id_to_delete=atoi(mista);
+								appoggio.id=id_to_delete;
+							}while(alfanumerico(mista) || numero<0);
+							app=modifica_file_artisti(appoggio,'e');									
 							if(app)
-								app=elimina_preferenze(id_to_delete,'a');
-							controllo_funzioni(app,'e');
+								app=elimina_preferenze(id_to_delete,'a');								
+						}while(!app);
+						controllo_funzioni(app,'e');
 						do{	
 							do{
-								printf("Desideri eliminare altri artisti?<si/no>\n");
+								printf("Desideri eliminare altri artisti?<si><no>\n");
 								fflush(stdin);
 								fgets(scelta_to_continue,3,stdin);
 							}while(controllo_risposta(scelta_to_continue,'q')=='r');
 						}while(controllo_risposta(scelta_to_continue,'q')=='s');		
 					}
 					
-					else{
+					else if(scelta_1==2){
 						struct utente appoggio;
+						bool condizione_alphanum;
 						do{
 							do{
-								printf("Desideri visualizzare l'elenco degli utenti?<si/no>\n");
+								printf("Desideri visualizzare l'elenco degli utenti?<si><no>\n");
 								fflush(stdin);
 								fgets(scelta_to_continue,3,stdin);
-							}while(controllo_risposta(scelta_elenco,'q')=='r');	
-							if(controllo_risposta(scelta_elenco,'q')=='s'){
+							}while(controllo_risposta(scelta_to_continue,'q')=='r');	
+							if(controllo_risposta(scelta_to_continue,'q')=='s'){
 								visualizza_elenco('u',txt_utente);
 							}
-							printf("Inserire l'ID dell'artista da eliminare:\n");
-							fflush(stdin);
-							fgets(mista,3,stdin);
-							id_to_delete=atoi(mista);
-							appoggio.id=id_to_delete;
-							app=modifica_file_utenti(appoggio,'e');
-							if(app)
-								app=elimina_preferenze(id_to_delete,'u');						
-							controllo_funzioni(app,'e');
 							do{
-								printf("Desideri eliminare altri utenti?[si/no]\n");
+								do{
+									condizione_alphanum=false;
+									printf("Inserire l'ID dell'user da eliminare:\n");
+									fflush(stdin);
+									fgets(mista,3,stdin);
+									id_to_delete=atoi(mista);
+									appoggio.id=id_to_delete;
+								}while(alfanumerico(mista) || numero<0);		
+								app=modifica_file_utenti(appoggio,'e','u');						
+								if(app)
+									app=elimina_preferenze(id_to_delete,'u');						
+								controllo_funzioni(app,'e');
+							}while(!app);
+							do{
+								printf("Desideri eliminare altri utenti?<si><no>\n");
+								fflush(stdin);
+								fgets(scelta_to_continue,3,stdin);
+							}while(controllo_risposta(scelta_to_continue,'q')=='r');	
+						}while(controllo_risposta(scelta_to_continue,'q')=='s');
+					}
+					else if(scelta_1==3){
+						struct utente appoggio;
+						bool condizione_alphanum;
+						do{
+							do{
+								printf("Desideri visualizzare l'elenco degli admin?<si><no>\n");
+								fflush(stdin);
+								fgets(scelta_to_continue,3,stdin);
+							}while(controllo_risposta(scelta_to_continue,'q')=='r');	
+							if(controllo_risposta(scelta_to_continue,'q')=='s'){
+								visualizza_elenco('s',txt_utente);
+							}
+							do{
+								do{
+									printf("Inserire l'ID dell'admin da eliminare:\n");
+									fflush(stdin);
+									fgets(mista,3,stdin);
+									id_to_delete=atoi(mista);
+									appoggio.id=id_to_delete;
+								}while(alfanumerico(mista) || numero<0);
+								
+								if(id_to_delete==var.id){
+									printf("Non puoi eliminare te stesso!\n");
+								} else{	
+									app=modifica_file_utenti(appoggio,'e','a');						
+									controllo_funzioni(app,'e');								
+									}
+							}while(!app);
+							
+							do{
+								printf("Desideri eliminare altri admin?<si><no>\n");
 								fflush(stdin);
 								fgets(scelta_to_continue,3,stdin);
 							}while(controllo_risposta(scelta_to_continue,'q')=='r');	
@@ -477,7 +546,7 @@ int main(){
 						}
 					}while(condizione);
 					do{
-						printf("Desideri effettuare un'altra ricerca?<si/no>\n");
+						printf("Desideri effettuare un'altra ricerca?<si><no>\n");
 						fflush(stdin);
 						fgets(scelta_3,10,stdin);
 						franco=controllo_risposta(scelta_3,'q');
@@ -507,8 +576,9 @@ int main(){
 					scelta=atoi(mista);
 					switch(scelta){
 						case 1:
-							string_id=visualizza_dati_id(var.id,txt_utente);
-							dati_utente_log=string_to_struct_utente(string_id);
+							printf("---------------------IL TUO PROFILO---------------------\n");
+							string_id=visualizza_dati_id(var.id,txt_utente,'u');
+							
 							printf("Vuoi modificare i tuoi dati?[si/no]\n");
 							do{
 								fflush(stdin);
@@ -516,25 +586,27 @@ int main(){
 								franco=controllo_risposta(scelta_3,'q');
 							}while(franco=='r');
 							if(franco=='s'){
-								utente_modificato=modifica_dati_struct_utente(dati_utente_log);
-								app=modifica_file_utenti(utente_modificato,'m');
+								utente_modificato=modifica_dati_struct_utente(var);
+								app=modifica_file_utenti(utente_modificato,'m','u');
 								controllo_funzioni(app,'m');
 							}	
 						break;
 						case 2:
+							printf("---------------------LE TUE PREFERENZE---------------------\n");
 							preferenze_e_ascolti_utente(var.id,"ascoltato");
 							preferenze_e_ascolti_utente(var.id,"like");
 							preferenze_e_ascolti_utente(var.id,"dislike");
 						break;
 						case 3:
+							printf("---------------------ELINIMAZIONE---------------------\n");
 							do{
-								printf("Sei sicuro di voler eliminare il tuo profilo?<si/no>\n");
+								printf("Sei sicuro di voler eliminare il tuo profilo?<si><no>\n");
 								fflush(stdin);
 								fgets(risposta,3,stdin);
 								franco=controllo_risposta(risposta,'q');
 							}while(franco=='r');
 							if(franco=='s'){
-								app=modifica_file_utenti(var,'e');
+								app=modifica_file_utenti(var,'e','u');
 								if(app)
 									app=elimina_preferenze(var.id,'u');
 								controllo_funzioni(app,'e');
@@ -811,7 +883,7 @@ bool visualizza_elenco(char tipologia,char *txt){
 	fclose(in);
 }
 
-char *  visualizza_dati_id(int id, char *txt){
+char *  visualizza_dati_id(int id, char *txt,char tipologia){
 	FILE *in;
 	in=fopen(txt,"r");
 	char string_f[200],app[200];
@@ -821,19 +893,29 @@ char *  visualizza_dati_id(int id, char *txt){
 	struct utente origano;
 	while(fgets(string_f,200,in)!=NULL && !condizione){
 		strcpy(app,string_f);
-		if((atoi(strtok(string_f,";")))==id){
-			condizione=true;		
+		if(tipologia=='u' || tipologia=='s')
+			origano=string_to_struct_utente(string_f);
+		
+		if((atoi(strtok(app,";")))==id){
+					
 			strcpy(app2,app);
-			if(strcmp(txt,"user.csv")==0 || strcmp(txt,"admin.csv")==0){	
+			if(strcmp(txt,"user.csv")==0 && tipologia=='u' && strcmp(origano.tipo,"user")==0){
+				condizione=true;
+				printf("ID            NOME         COGNOME            USER        PASSWORD  DATA DI NASCITA\n");
+				stampa_struct_utente(origano);
+			}
+			else if(strcmp(txt,"user.csv")==0 && tipologia=='s' && strcmp(origano.tipo,"admin")==0){
+				condizione=true;	
 				origano=string_to_struct_utente(app);
 				printf("ID            NOME         COGNOME            USER        PASSWORD  DATA DI NASCITA\n");
 				stampa_struct_utente(origano);
 			}
-			else{
+			else if(strcmp(txt,"artisti.csv")==0 && tipologia=='a'){
+				condizione=true;
 				cipolla=string_to_struct_artista(app);
 				printf("ID            NOME          GENERE      PRODUTTORE         NAZIONE ANNO INIZIO\n");
 				stampa_struct_artista(cipolla);	
-			}	
+			}
 		}
 	}
 	
@@ -1160,7 +1242,7 @@ bool modifica_file_artisti(struct artista modificato,char tipologia){
 
 }
 
-bool modifica_file_utenti(struct utente modificato,char tipologia){
+bool modifica_file_utenti(struct utente modificato,char tipologia,char tipologia2){
 	FILE *in,*out;
 	in=fopen("user.csv","r");
 	int n,k=0,app=0;
@@ -1172,10 +1254,17 @@ bool modifica_file_utenti(struct utente modificato,char tipologia){
 		utenti[i]=string_to_struct_utente(string_f);
 		if(utenti[i].id==modificato.id){
 			condizione_id=true;
-			if(tipologia=='m'){
+			if(tipologia=='m' && tipologia2=='u' && strcmp(utenti[i].tipo,"user")==0){
 				utenti[i]=modificato;
 			}
-			if(tipologia=='e'){
+			if(tipologia=='m' && tipologia2=='a' && strcmp(utenti[i].tipo,"admin")==0){
+				utenti[i]=modificato;
+			}
+			if(tipologia=='e' && tipologia2=='u' && strcmp(utenti[i].tipo,"user")==0){
+				i--;
+				n--;	
+			}
+			if(tipologia=='e' && tipologia2=='a' && strcmp(utenti[i].tipo,"admin")==0){
 				i--;
 				n--;	
 			}
@@ -1526,8 +1615,10 @@ bool controllo_data_nascita(struct data b_day){
 		risultato=false;
 	if(!(b_day.anno<=(time->tm_year+1900)-18 && b_day.anno>(time->tm_year+1800)))
 		risultato=false;
-	if(!(b_day.anno<=(time->tm_year+1900)-18 && b_day.mese<=time->tm_mon+1 && b_day.giorno<=time->tm_mday))
-		risultato=false;
+	if(b_day.anno>=(time->tm_year+1900)-18) 
+		 if(b_day.mese>=time->tm_mon+1)
+		 	if(b_day.giorno>time->tm_mday)
+				risultato=false;
 	if((b_day.mese==1 || b_day.mese==3 || b_day.mese==5 || b_day.mese==7 || b_day.mese==8 || b_day.mese==10 || b_day.mese==12) && risultato)
 		risultato=true;
 	if((b_day.mese==4 || b_day.mese==6 || b_day.mese==9 || b_day.mese==11) && risultato){
@@ -1701,7 +1792,7 @@ bool ordinamento_artisti(char tipologia,int id_utente){
 	}
 	
 	
-	for(int i=n_art-1;i>=0;i--){
+	for(int i=n_art-1;i>0;i--){
 		printf("[%d]%s n %s=%d\n",(n_art-i),cipolla[i].art.nome,var1,cipolla[i].num_roba);
 	}
 	printf("\n");
@@ -1838,7 +1929,7 @@ bool preferenze_e_ascolti_utente(int id_utente,char *tipo){
 		}
 		if(strcmp(tipo,"ascoltato")!=0){
 			do{
-				printf("Vuoi modificare i tuoi %s?<si/no>\n",tipo);
+				printf("Vuoi modificare i tuoi %s?<si><no>\n",tipo);
 				fflush(stdin);
 				fgets(string,10,stdin);
 				franco=controllo_risposta(string,'q');
@@ -1963,4 +2054,17 @@ bool modifica_preferenza(int id_artista,int id_utente,char tipologia){
 		risultato=false;
 	fclose(out);
 	return risultato;
+}
+
+
+
+bool alfanumerico(char *string){
+	strtok(string,"\n");//grazie
+	bool condizione_alphanum=false;
+	for(int i=0;i<strlen(string);i++){
+		if(isalpha(string[i])>0 || isspace(string[i])>0){
+			condizione_alphanum=true;
+		}
+	}
+	return condizione_alphanum;
 }
