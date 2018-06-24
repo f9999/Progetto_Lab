@@ -1182,16 +1182,16 @@ int controllo_nome(char *nome,char *txt){
  */
 bool inserimento_ascolti_e_preferenze(int id_artista,int id_utente,char tipologia){
 	FILE *out;
-	int app = -1;
+	int app = -1; //variabile di appoggio utilizzata per il controllo
 	bool risultato,controllo = false,controllo_l = false,controllo_d = false;
 	char string_f[200],string_l[200],string_d[200],risposta[20],var;
 
 	if(tipologia == 'a'){
 		sprintf(string_f,"%d;%d;ascoltato\n",id_utente,id_artista);
-		controllo = controllo_file_preferenze(string_f);
+		controllo = controllo_file_preferenze(string_f);			//la funzione controllo_file_preferenze controlla se vi e' gia' stato un ascolto di questo artista su file
 	}
 	if(tipologia == 'l' || tipologia == 'd'){
-		sprintf(string_l,"%d;%d;like\n",id_utente,id_artista);
+		sprintf(string_l,"%d;%d;like\n",id_utente,id_artista);		//la funzione controllo_file_preferenze controlla se vi e' gia' stata inserita una preferenza a questo artista su file
 		controllo_l = controllo_file_preferenze(string_l);
 		if(controllo_l){
 			sprintf(string_d,"%d;%d;dislike\n",id_utente,id_artista);
@@ -1204,7 +1204,7 @@ bool inserimento_ascolti_e_preferenze(int id_artista,int id_utente,char tipologi
 					strcpy(string_f,string_d);
 			}
 			else if(tipologia == 'l' && !controllo_d){
-				printf("Hai già inserito un dislike per questo artista\n");
+				printf("Hai già inserito un dislike per questo artista\n"); //se vi e' gia' inserito un like una stampa chiede se si vuole scambiare la preferenze o eliminarla
 				printf("Vuoi inserire una preferenza opposta o eliminare?<scambia><elimina>\n");
 				fflush(stdin);
 				fgets(risposta,20,stdin);
@@ -1216,7 +1216,7 @@ bool inserimento_ascolti_e_preferenze(int id_artista,int id_utente,char tipologi
 		}
 		else if(tipologia == 'd' && !controllo_l){
 			do{
-				printf("Hai già inserito un like per questo artista\n");
+				printf("Hai già inserito un like per questo artista\n");	//se vi e' gia' inserito un dislike una stampa chiede se si vuole scambiare la preferenze o eliminarla
 				printf("Vuoi inserire una preferenza opposta o eliminare?<scambia><elimina>\n");
 				fflush(stdin);
 				fgets(risposta,20,stdin);
@@ -1234,7 +1234,7 @@ bool inserimento_ascolti_e_preferenze(int id_artista,int id_utente,char tipologi
 	strcat(string_f,"\n");
 	if(controllo)
 		app = fprintf(out,string_f);
-	if(app>0 || risultato)
+	if(app>0 || risultato)			//controlla se l'operazione e' andata a buon fine
 		risultato = true;
 	else
 		risultato = false;
@@ -1254,7 +1254,7 @@ bool controllo_file_preferenze(char * string){
 	in = fopen("preferenze_ascolto.csv","r");
 	bool risultato = true;
 	char string_f[200];
-	while(fgets(string_f,200,in)!= NULL && risultato){
+	while(fgets(string_f,200,in)!= NULL && risultato){		//legge dal file "preferenze_ascolto.csv" se vi e' gia' un ascolto o una preferenza inserita
 		if(strcmp(strtok(string,"\n"),strtok(string_f,"\n")) == 0)
 			risultato = false;
 	}
@@ -1270,11 +1270,11 @@ bool controllo_file_preferenze(char * string){
  */
 bool aggiungi_admin(struct utente admin){
 	bool condizione,var1 = false,app2 = true;
-	int app,risultato;
+	int app,risultato;		//variabili di appoggio
 	condizione = true;
 	FILE *in;
-	app = controllo_nome("admin.csv",strtok(admin.user,"\n"));
-	app2 = controllo_data_nascita(admin.data_nascita);
+	app = controllo_nome("admin.csv",strtok(admin.user,"\n"));  //rimanda alla funzione che controlla se l'user dell'admin immesso e' gia' presente
+	app2 = controllo_data_nascita(admin.data_nascita);			//rimanda alla funzione che esegue controlli sulla data di nascita
 	if(app == -1 && !app2)
 		condizione = false;
 	if(condizione){
@@ -1284,9 +1284,9 @@ bool aggiungi_admin(struct utente admin){
 	    struct tm* time;
 	    time  =  localtime(&rawtime);
 		risultato = fprintf(in,"%d;%s;%s;%s;%s;%d;%d;%d;%d;%d;%d\n",app+1,strtok(admin.nome,"\n"),strtok(admin.cognome,"\n"),admin.user,strtok(admin.password,"\n"),
-		admin.data_nascita.giorno,admin.data_nascita.mese,admin.data_nascita.anno,time->tm_mday,time->tm_mon,time->tm_year+1900);
+		admin.data_nascita.giorno,admin.data_nascita.mese,admin.data_nascita.anno,time->tm_mday,time->tm_mon,time->tm_year+1900);		//stampa su file tutti i dati della struct admin
 		if(risultato>0)
-			var1 = true;
+			var1 = true;		//torna vero se la scrittura e' avvenuta
 	}
 	return var1;
 }
@@ -1304,25 +1304,25 @@ bool ordinamento_artisti(char tipologia,int id_utente){
 	char app1[20];
 	in = fopen("preferenze_ascolto.csv","r");
 	struct preferenza var[100];
-	struct pd{
+	struct pd{					//contiene la struct artisti e un intero se vi e' un ascolto o un like
 		int num_roba;
 		struct artista art;
 	};
 	char string_f[200],var1[15],var2;
 	int n_pr = 0,n_art = 0,risposta = 0;
-	struct pd cipolla[100],app;
+	struct pd cipolla[100],app;	//dichiarazione di array di struct			
 	bool condizione,controllo;
-	if(tipologia == 'a')
-		strcpy(var1,"ascoltato");
+	if(tipologia == 'a')		//in base alla tipologia mandata per parametro esegue l'ordimaneto necessario
+		strcpy(var1,"ascoltato"); //per ascolti	
 	if(tipologia == 'p')
-		strcpy(var1,"like");
-	for(int i = 0;fgets(string_f,200,in)!= NULL;i++){
+		strcpy(var1,"like");	//o per like
+	for(int i = 0;fgets(string_f,200,in)!= NULL;i++){	//prende in input dal file preferenze_ascolto.csv i dati 
 		var[i] = string_to_struct_preferenza(string_f);
 		n_pr++;
 	}
 	fclose(in);
 	in = fopen("artisti.csv","r");
-	for(int i = 0;fgets(string_f,200,in)!= NULL;i++){
+	for(int i = 0;fgets(string_f,200,in)!= NULL;i++){	//prende in input dal file artisti.csv i dati
 		cipolla[i].art = string_to_struct_artista(string_f);
 		cipolla[i].num_roba = 0;
 		n_art++;
@@ -1332,7 +1332,7 @@ bool ordinamento_artisti(char tipologia,int id_utente){
 		condizione = true;
 		if(strcmp(strtok(var[i].scelta,"\n"),var1) == 0){
 			for(int j = 0;j<n_art && condizione;j++){
-				if(cipolla[j].art.id == var[i].id_artista){
+				if(cipolla[j].art.id == var[i].id_artista){//assegna punteggio ad ogni artista in base agli ascolti o i like
 					condizione = false;
 					cipolla[j].num_roba++;
 				}
@@ -1341,7 +1341,7 @@ bool ordinamento_artisti(char tipologia,int id_utente){
 	}
 	for(int i = 0;i<n_art;i++){
 		for(int j = 0;j<n_art-1;j++){
-			if(cipolla[j].num_roba>cipolla[j+1].num_roba){
+			if(cipolla[j].num_roba>cipolla[j+1].num_roba){// ordinamento bubble sort
 				app = cipolla[j];
 				cipolla[j] = cipolla[j+1];
 				cipolla[j+1] = app;
@@ -1352,17 +1352,17 @@ bool ordinamento_artisti(char tipologia,int id_utente){
 	if(strcmp(var1,"ascoltato") == 0)
 			strcpy(var1,"ascolti");
 	for(int i = n_art-1;i>0;i--){
-		printf("[%2d]%-20s numero %-10s-->%3d\n",(n_art-i),cipolla[i].art.nome,var1,cipolla[i].num_roba);
+		printf("[%2d]%-20s numero %-10s-->%3d\n",(n_art-i),cipolla[i].art.nome,var1,cipolla[i].num_roba); //stampa della classifica ordinata
 	}
 	printf("\n");
 	do{
-			printf("Selezionare un'artista [inserisci una posizione da 1 a 10 (-1 per uscire)]<ID><-1>\n");
+			printf("Selezionare un'artista per ascoltare o mettere una preferenza [inserisci una posizione da 1 a 10 (-1 per uscire)]<ID><-1>\n");
 			fflush(stdin);
 			fgets(app1,MAX_NUM_INPUT,stdin);
 			risposta = atoi(app1);
 	}while((risposta<1 || risposta>10) && risposta!= -1);
 	if(risposta!= -1)
-		controllo = ascolti_or_preferenze(id_utente,cipolla[(n_art-1)-(risposta-1)].art.id,cipolla[(n_art-1)-(risposta-1)].art.nome);
+		controllo = ascolti_or_preferenze(id_utente,cipolla[(n_art-1)-(risposta-1)].art.id,cipolla[(n_art-1)-(risposta-1)].art.nome);//rimanda ad ascolti_or_preferenze
 
 
 	return true;
@@ -1378,10 +1378,10 @@ bool ordinamento_artisti(char tipologia,int id_utente){
  * @return Uno specifico carattere.
  */
 char controllo_risposta(char risposta[20],char tipologia){
-	char condizione = 'r';
+	char condizione = 'r';		//in caso di errore viene restituito r
 	strtok(risposta,"\n");
 	to_minuscolo(risposta);
-	switch (tipologia){
+	switch (tipologia){ //switch che esegue varie strcmp in base alla tipologia ricevuta 
 		case 'a':
 			if(strcmp(risposta,"ascoltati") == 0){
 			condizione = 'a';
@@ -1438,7 +1438,7 @@ char* to_minuscolo(char *string){
 	int i, s = 0;
 	s  =  strlen(string);
 	strcpy(string,strtok(string,"\n"));
-	for(i  = 0;i<s-1;i++){
+	for(i  = 0;i<s-1;i++){				//ciclo for che itera da 0 fino alla lunghezza della stringa in input
 		string[i] = tolower(string[i]);
 	}
 	return string;
@@ -1456,7 +1456,7 @@ struct preferenza string_to_struct_preferenza(char *string){
 	var.id_artista = atoi(strtok(NULL,";"));
 	strcpy(var.scelta,strtok(NULL,";"));
 	strcpy(var.scelta,strtok(var.scelta,"\n"));
-	return var;
+	return var;					//ritorna la struct 
 }
 
 /**
@@ -1469,11 +1469,11 @@ struct preferenza string_to_struct_preferenza(char *string){
 bool preferenze_e_ascolti_utente(int id_utente,char *tipo){
 	FILE *in;
 	in = fopen("preferenze_ascolto.csv","r");
-	struct preferenza array[100],app;
+	struct preferenza array[100],app;		//array di struct
 	struct artista array_art[MAX];
 	int i = 0,n_art = 0,vettore_posizioni[MAX] = {-1},n_pr = 0,posizione;
 	char string_f[200],string[20],franco;
-	while(fgets(string_f,50,in)!= NULL){
+	while(fgets(string_f,50,in)!= NULL){	//prende in input i dati dal file preferenze_ascolto.csv
 		app = string_to_struct_preferenza(string_f);
 		if(strcmp(app.scelta,tipo) == 0 && id_utente == app.id_utente){
 			array[i] = app;
@@ -1493,17 +1493,17 @@ bool preferenze_e_ascolti_utente(int id_utente,char *tipo){
 		if(strcmp(tipo,"ascoltato") == 0)
 			printf("Hai ascoltato questi artisti:\n");
 		else
-			printf("Hai messo %s a questi artisti:\n",tipo);
+			printf("Hai messo %s a questi artisti:\n",tipo);//%s stampa like o dislike
 		int l = 0;
 		for(int j = 0;j<i;j++){
 			for(int k = 0;k<n_art;k++){
 				if(array[j].id_artista == array_art[k].id){
 					if(i>1){
-						printf("[%d] ",l+1);
+						printf("[%d] ",l+1);				//stampa numero degli artisti con cui si ha avuto una interazione
 					}
 					else
 						posizione = k;
-					printf("%s\n",array_art[k].nome);
+					printf("%s\n",array_art[k].nome);		//stampa il nome degli artisti
 					vettore_posizioni[l] = k;
 					l++;
 				}
@@ -1512,7 +1512,7 @@ bool preferenze_e_ascolti_utente(int id_utente,char *tipo){
 		}
 		if(strcmp(tipo,"ascoltato")!= 0){
 			do{
-				printf("Vuoi modificare i tuoi %s?<si><no>\n",tipo);
+				printf("Vuoi modificare i tuoi %s?<si><no>\n",tipo);	//stampa per poter ascambiare o eliminare le propire preferenze
 				fflush(stdin);
 				fgets(string,10,stdin);
 				franco = controllo_risposta(string,'q');
@@ -1539,9 +1539,9 @@ bool preferenze_e_ascolti_utente(int id_utente,char *tipo){
 	}
 	else{
 		if(strcmp(tipo,"ascoltato") == 0)
-			printf("Non hai ancora ascoltato nessun artista.\n");
+			printf("Non hai ancora ascoltato nessun artista.\n");	//stampa se non ha ascoltato nessuno
 		else
-			printf("Non hai ancora messo %s a nessun artista.\n",tipo);
+			printf("Non hai ancora messo %s a nessun artista.\n",tipo);	//stampa se non si e' messo like o dislike a nessun artista
 	}
 
 
@@ -1556,22 +1556,22 @@ bool preferenze_e_ascolti_utente(int id_utente,char *tipo){
  */
 bool elimina_preferenze(int id,char tipologia){
 	char string_f[100];
-	struct preferenza array[200],app;
+	struct preferenza array[200],app;		//array di struct
 	int n = 0,k = 0,var = 0;
 	bool risultato = false;
 	FILE *in,*out;
 	in = fopen("preferenze_ascolto.csv","r");
-	for(int i = 0;fgets(string_f,99,in)!= NULL;i++){
+	for(int i = 0;fgets(string_f,MAX,in)!= NULL;i++){	//prende in input dal file preferenze_ascolto
 		app = string_to_struct_preferenza(string_f);
 		if(tipologia == 'a'){
-			if(app.id_artista == id){
+			if(app.id_artista == id){					// elimina la riga in cui vi e' la corrispondenza tra l'artista da eliminare e l'artista da file
 				i--;
 				n--;
 			}
 			else
 				array[i] = app;
 		}
-		if(tipologia == 'u'){
+		if(tipologia == 'u'){							// elimina la riga in cui vi e' la corrispondenza tra l'utente da eliminare e l'utente da file
 			if(app.id_utente == id){
 				i--;
 				n--;
@@ -1586,7 +1586,7 @@ bool elimina_preferenze(int id,char tipologia){
 	fclose(in);
 	out = fopen("preferenze_ascolto.csv","w");
 	for(int i = 0;i<n;i++){
-		var = fprintf(out,"%d;%d;%s\n",array[i].id_utente,array[i].id_artista,array[i].scelta);
+		var = fprintf(out,"%d;%d;%s\n",array[i].id_utente,array[i].id_artista,array[i].scelta); //nuova stampa su file dei dati aggiornati
 		if(var>0){
 			var = 0;
 			k++;
@@ -1614,21 +1614,21 @@ bool modifica_preferenza(int id_artista,int id_utente,char tipologia){
 	struct preferenza array[100];
 	int n = 0,var = 0,k = 0;
 	bool risultato = true,app=true;
-	for(int i = 0;fgets(string_f,100,in)!= NULL && app;i++){
+	for(int i = 0;fgets(string_f,100,in)!= NULL && app;i++){	//prende in input i dati dal file preferenze_ascolto
 		array[i] = string_to_struct_preferenza(string_f);
 		n++;
-		if(array[i].id_artista == id_artista && array[i].id_utente == id_utente){
+		if(array[i].id_artista == id_artista && array[i].id_utente == id_utente){		//vari controlli per eseguire lo scambio di preferenza
 			if(strcmp(strtok(array[i].scelta,"\n"),"like") == 0 && tipologia!= 'e'){
 				printf("Cambio like con dislike...\n");
 				strcpy(array[i].scelta,"dislike");
 				app=false;
 			}
-			else if(strcmp(strtok(array[i].scelta,"\n"),"dislike") == 0 && tipologia!= 'e'){
+			else if(strcmp(strtok(array[i].scelta,"\n"),"dislike") == 0 && tipologia!= 'e'){	//vari controlli per eseguire lo scambio di preferenza
 				printf("Cambio dislike con like...\n");
 				strcpy(array[i].scelta,"like");
 				app=false;
 			}
-			else if(tipologia == 'e'){
+			else if(tipologia == 'e'){					//elimina la preferenza
 				i--;
 				n--;
 				printf("La preferenza e' stata eliminata.\n");
@@ -1640,7 +1640,7 @@ bool modifica_preferenza(int id_artista,int id_utente,char tipologia){
 	fclose(in);
 	out = fopen("preferenze_ascolto.csv","w");
 	for(int i = 0;i<n;i++){
-		var = fprintf(out,"%d;%d;%s\n",array[i].id_utente,array[i].id_artista,array[i].scelta);
+		var = fprintf(out,"%d;%d;%s\n",array[i].id_utente,array[i].id_artista,array[i].scelta);		//stampa su file i dati aggiornati
 		if(var>0){
 			var = 0;
 			k++;
@@ -1664,10 +1664,10 @@ bool modifica_preferenza(int id_artista,int id_utente,char tipologia){
 bool alfanumerico(char *string){
 	strtok(string,"\n");
 	bool condizione_alphanum = false;
-	for(int i = 0;i<strlen(string) && !condizione_alphanum;i++){
-		if(isalpha(string[i])>0 || isspace(string[i])>0){
+	for(int i = 0;i<strlen(string) && !condizione_alphanum;i++){	//ciclo che itera da 0 fino alla lunghezza della stringa in input
+		if(isalpha(string[i])>0 || isspace(string[i])>0){			//controlla che la stringa contiene caratteri alfabetici o spazi
 			condizione_alphanum = true;
 		}
 	}
-	return condizione_alphanum;
+	return condizione_alphanum;				//ritorna vero se vi sono caratteri alfabetici o spazi
 }
