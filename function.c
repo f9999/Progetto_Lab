@@ -48,13 +48,13 @@ bool controllo_data_nascita(struct data b_day){
 	time_t rawtime;
  	time (&rawtime);
     struct tm* time;
-    time  =  localtime(&rawtime);
+    time  =  localtime(&rawtime);				//legge il tempo del sistema 
     bool risultato = true;
-	if(b_day.giorno <= 0 || b_day.giorno>31)
+	if(b_day.giorno <= 0 || b_day.giorno>31)	//programmazione difensiva per l'inserimento del giorno di nascita
 		risultato = false;
-	if(b_day.mese <= 0 || b_day.mese>12)
+	if(b_day.mese <= 0 || b_day.mese>12)		//programmazione difensiva per l'inserimento del mese di nascita
 		risultato = false;
-	if(!(b_day.anno <= (time->tm_year+1900)-18 && b_day.anno>(time->tm_year+1800)))
+	if(!(b_day.anno <= (time->tm_year+1900)-18 && b_day.anno>(time->tm_year+1800))) //gli utenti minorenni o ultracentenari non possono iscriversi
 		risultato = false;
 	if(b_day.anno >= (time->tm_year+1900)-18)
 		 if(b_day.mese >= time->tm_mon+1)
@@ -69,14 +69,14 @@ bool controllo_data_nascita(struct data b_day){
 			risultato = false;
 	}
 	if((b_day.mese == 2) && risultato){
-		if((b_day.anno%4) == 0){
+		if((b_day.anno%4) == 0){				//se l'utente ha inserito in input 29 febbraio controlla se l'anno e' bisestile
 			if(b_day.giorno<30)
 				risultato = true;
 			else
 				risultato = false;
 		}
 		else{
-			if(b_day.giorno<29)
+			if(b_day.giorno<29)					//controllo per la data inserita
 				risultato = true;
 			else
 				risultato = false;
@@ -94,8 +94,8 @@ bool controllo_data_nascita(struct data b_day){
  * @return Struct utente contenente i dati inseriti correttamente.
  */
 struct utente input_registrazione(){
-	struct utente app;
-	int var = -1;
+	struct utente app;						//stampa dei vari campi richiesti per la registrazione
+	int var = -1;										
 	char string_f[100],*pt;
 	bool condizione = true;
 	printf("Inserire il nome:");
@@ -117,7 +117,7 @@ struct utente input_registrazione(){
 			continue;
 		}
 		var = controllo_nome(app.user,"user.csv");
-		if(var == -1)
+		if(var == -1)													// se l'user e' gia' in uso il programma chiede di inserirne uno nuovo
 			printf("User gia' in uso\nReinserire l'user'(senza spazi):");
 		else{
 			app.id = var+1;
@@ -125,7 +125,7 @@ struct utente input_registrazione(){
 	}while(var == -1);
 
 	do{
-		printf("Inserire la password(Minimo 6 caratteri):");
+		printf("Inserire la password(Minimo 6 caratteri):");			// richiede una password che sia lunga almeno 6 caratteri altrimenti ripete
 		fflush(stdin);
 		fgets(string_f,40,stdin);
 		strcpy(app.password,strtok(string_f,"\n"));
@@ -140,7 +140,7 @@ struct utente input_registrazione(){
 			fflush(stdin);
 			fgets(string_f,3,stdin);
 			app.data_nascita.giorno = atoi(string_f);
-			if(!controllo_data_nascita(app.data_nascita)){
+			if(!controllo_data_nascita(app.data_nascita)){				//programmazione difensiva per evitare errori di battitura
 				printf("Reinserisci\n");
 				condizione = false;
 			}
@@ -153,7 +153,7 @@ struct utente input_registrazione(){
 			fflush(stdin);
 			fgets(string_f,3,stdin);
 			app.data_nascita.mese = atoi(string_f);
-			if(!controllo_data_nascita(app.data_nascita)){
+			if(!controllo_data_nascita(app.data_nascita)){				//programmazione difensiva per evitare errori di battitura
 				printf("Reinserisci\n");
 				condizione = false;
 			}
@@ -165,7 +165,7 @@ struct utente input_registrazione(){
 			fflush(stdin);
 			fgets(string_f,5,stdin);
 			app.data_nascita.anno = atoi(string_f);
-			if(!controllo_data_nascita(app.data_nascita)){
+			if(!controllo_data_nascita(app.data_nascita)){				//e' possibile iscriversi solo se si e' maggiorenni e non si e' ultracentenari
 				printf("Reinserisci\n");
 				condizione = false;
 			}
@@ -194,7 +194,7 @@ bool registrazione(struct utente utente){
     struct tm* time;
     time  =  localtime(&rawtime);
 	app = fprintf(out,"%d;%s;%s;%s;%s;%s;%d;%d;%d;%d;%d;%d\n",utente.id,utente.nome,utente.cognome,utente.user,utente.password,utente.tipo,
-	utente.data_nascita.giorno,utente.data_nascita.mese,utente.data_nascita.anno,time->tm_mday,time->tm_mon+1,time->tm_year+1900);
+	utente.data_nascita.giorno,utente.data_nascita.mese,utente.data_nascita.anno,time->tm_mday,time->tm_mon+1,time->tm_year+1900); //stampa e memorizza sul file user.csv i dati inseriti dall'utente 
 	fclose(out);
 	if(app>0){
 		risultato = true;
@@ -221,7 +221,7 @@ struct utente  autenticazione(char *nome,char *password){
 	FILE *in;
 	in = fopen("user.csv","r");
 	rewind(in);
-	while(condizione_admin && fgets(string_f,200,in)!= NULL){
+	while(condizione_admin && fgets(string_f,200,in)!= NULL){  //la funzione legge il file e controlla se i campi inseriti dall'utente corrisposndo a quelli presenti nel file per potersi autenticare
 		var = string_to_struct_utente(string_f);
 		if(strcmp(var.user,nome) == 0)
 			if(strcmp(var.password,password) == 0){
@@ -255,10 +255,10 @@ bool aggiungi_artista(struct artista artista){
 		out = fopen("artisti.csv","a");
 		if(artista.numero_generi == 1)
 			app = fprintf(out,"%d;%s;%d;%s;%s;%s;%d",id+1,strtok(artista.nome,"\n"),artista.numero_generi,strtok(artista.genere[0],"\n"),
-			strtok(artista.produttore,"\n"),strtok(artista.nazione,"\n"),artista.anno_inizio);
+			strtok(artista.produttore,"\n"),strtok(artista.nazione,"\n"),artista.anno_inizio); // stampa e memorizzazione dei vari campi dell'artista su file
 		else{
-			app = fprintf(out,"%d;%s;%d;",id+1,strtok(artista.nome,"\n"),artista.numero_generi);
-			for(int i = 0;i<artista.numero_generi;i++){
+			app = fprintf(out,"%d;%s;%d;",id+1,strtok(artista.nome,"\n"),artista.numero_generi); //ciclo per inserire i vari generi dell'artista se sono piu' di uno
+			for(int i = 0;i<artista.numero_generi;i++){						
 				fprintf(out,"%s",strtok(artista.genere[i],"\n"));
 				if(i!= artista.numero_generi-1)
 					fprintf(out,",");
@@ -353,7 +353,7 @@ bool visualizza_elenco(char tipologia,char *txt){
 			if(strcmp(origano.tipo,"admin") == 0)
 				stampa_struct_utente(origano);
 		}
-	}while(fgets(string_f,300,in)!= NULL);
+	}while(fgets(string_f,300,in)!= NULL); 			// prende in input dal file i dati necessari fin quando non lo termina
 	fclose(in);
 }
 
@@ -373,7 +373,7 @@ char *  visualizza_dati_id(int id, char *txt,char tipologia,char* string){
 	bool condizione = false;
 	struct artista cipolla;
 	struct utente origano;
-	while(fgets(string_f,200,in)!= NULL && !condizione){
+	while(fgets(string_f,200,in)!= NULL && !condizione){				//preleva da file i dati relativi ad ogni utente o artista e si inerrompe quando viene mostrato il profilo cercato
 		strcpy(app,string_f);
 		strcpy(string,app);
 		cipolla.id = -1;
@@ -500,7 +500,7 @@ struct artista modifica_dati_struct(struct artista to_modify){
 	int num_genere;
 	do {
 		condizione = true;
-		printf("Che dati vuole modificare?<nome><genere><produttore><nazione><anno>)\n");
+		printf("Che dati vuole modificare?<nome><genere><produttore><nazione><anno>)\n"); //chiede in input uno dei campi da modificare
 		fflush(stdin);
 		fgets(scelta,20,stdin);
 		strtok(scelta,"\n");
@@ -573,19 +573,19 @@ struct artista modifica_dati_struct(struct artista to_modify){
 			    time  =  localtime(&rawtime);
 				if(to_modify.anno_inizio>time->tm_year+1900 || to_modify.anno_inizio == 0)
 					condizione_do_while = true;
-			}while(condizione_do_while);
+			}while(condizione_do_while);							// programmazione difensva per evitare errori di battitura
 		}
 		if(condizione){
 			printf("Renserisci.\n");
 			continue;
 			}
 		do{
-			printf("Desideri modificare altri campi?<si><no>\n");
+			printf("Desideri modificare altri campi?<si><no>\n");	// se risposta affermativamente continua con la modifica dei vari campi dell'artista
 			fflush(stdin);
 			fgets(app,3,stdin);
 			franco = controllo_risposta(app,'q');
 		}while(franco == 'r');
-	}while(franco == 's');
+	}while(franco == 's' || condizione);
 	return to_modify;
 }
 
@@ -701,7 +701,7 @@ struct utente modifica_dati_struct_utente(struct utente to_modify){
 			fgets(var,10,stdin);
 			franco = controllo_risposta(var,'q');
 		}while(franco == 'r');
-	}while(franco == 's');
+	}while(franco == 's' || condizione);
 	return to_modify;
 
 }
@@ -721,7 +721,7 @@ bool modifica_file_artisti(struct artista modificato,char tipologia){
 	struct artista artisti[MAX];
 	bool risultato = false,condizione_id = false;
 	char string_f[200];
-	for(int i = 0;fgets(string_f,200,in)!= NULL;i++){
+	for(int i = 0;fgets(string_f,200,in)!= NULL;i++){			//prende in input da file le informazioni relative all'artista inviato dal parametro
 		n++;
 		artisti[i] = string_to_struct_artista(string_f);
 		if(artisti[i].id == modificato.id){
@@ -729,7 +729,7 @@ bool modifica_file_artisti(struct artista modificato,char tipologia){
 			if(tipologia == 'm'){
 				artisti[i] = modificato;
 			}
-			if(tipologia == 'e'){
+			if(tipologia == 'e'){								// elimina la riga in cui c'era l'artista inviato dal parametro e copia le informazioni dal file
 				i--;
 				n--;
 			}
@@ -738,7 +738,7 @@ bool modifica_file_artisti(struct artista modificato,char tipologia){
 	fclose(in);
 	if(condizione_id){
 		out = fopen("artisti.csv","w");
-		for(int i = 0;i<n;i++){
+		for(int i = 0;i<n;i++){									// sovrascrive il file artisti attraverso la struct creata precedentemente
 			if(artisti[i].numero_generi == 1)
 				app = fprintf(out,"%d;%s;%d;%s;%s;%s;%d\n",artisti[i].id,artisti[i].nome,artisti[i].numero_generi,artisti[i].genere[0],artisti[i].produttore,artisti[i].nazione,artisti[i].anno_inizio);
 			else{
@@ -784,22 +784,22 @@ bool modifica_file_utenti(struct utente modificato,char tipologia,char tipologia
 	char string_f[200];
 	bool risultato = false,condizione_id = false;
 	struct utente utenti[MAX];
-	for(int i = 0;fgets(string_f,200,in)!= NULL;i++){
+	for(int i = 0;fgets(string_f,200,in)!= NULL;i++){		//prende in input da file i dati degli utenti e degli admin
 		n++;
 		utenti[i] = string_to_struct_utente(string_f);
 		if(utenti[i].id == modificato.id){
 			condizione_id = true;
-			if(tipologia == 'm' && tipologia2 == 'u' && strcmp(utenti[i].tipo,"user") == 0){
+			if(tipologia == 'm' && tipologia2 == 'u' && strcmp(utenti[i].tipo,"user") == 0){		//modifica utenti
 				utenti[i] = modificato;
 			}
-			if(tipologia == 'm' && tipologia2 == 'a' && strcmp(utenti[i].tipo,"admin") == 0){
+			if(tipologia == 'm' && tipologia2 == 'a' && strcmp(utenti[i].tipo,"admin") == 0){		//modifica admin
 				utenti[i] = modificato;
 			}
-			if(tipologia == 'e' && tipologia2 == 'u' && strcmp(utenti[i].tipo,"user") == 0){
+			if(tipologia == 'e' && tipologia2 == 'u' && strcmp(utenti[i].tipo,"user") == 0){		//elimina user
 				i--;
 				n--;
 			}
-			if(tipologia == 'e' && tipologia2 == 'a' && strcmp(utenti[i].tipo,"admin") == 0){
+			if(tipologia == 'e' && tipologia2 == 'a' && strcmp(utenti[i].tipo,"admin") == 0){		//elimina admin
 				i--;
 				n--;
 			}
@@ -809,7 +809,7 @@ bool modifica_file_utenti(struct utente modificato,char tipologia,char tipologia
 	FILE *out;
 	if(condizione_id){
 		out = fopen("user.csv","w");
-		for(int i = 0;i<n;i++){
+		for(int i = 0;i<n;i++){			// ciclo per stampare e memorizzare su file le relative modifiche o cancellazioni effettuate
 			app = fprintf(out,"%d;%s;%s;%s;%s;%s;%d;%d;%d;%d;%d;%d\n",utenti[i].id,utenti[i].nome,utenti[i].cognome,utenti[i].user,utenti[i].password,
 			utenti[i].tipo,utenti[i].data_nascita.giorno,utenti[i].data_nascita.mese,utenti[i].data_nascita.anno,
 			utenti[i].data_iscrizione.giorno,utenti[i].data_iscrizione.mese,utenti[i].data_iscrizione.anno);
@@ -854,12 +854,12 @@ bool ricerca_artisti(char *string,char tipo,int id_utente){
 	bool condizione_secondo_ciclo = true,condizione_generi = false;
 	bool var = false;
 	in = fopen("artisti.csv","r");
-	for(int i = 0;fgets(string_f,200,in)!= NULL;i++){
+	for(int i = 0;fgets(string_f,200,in)!= NULL;i++){			//prende in input da file i dati di ogni artista
 		classifica[i].array = string_to_struct_artista(string_f);
 		n++;
 	}
 	fclose(in);
-	for(int i = 0;i<n;i++){
+	for(int i = 0;i<n;i++){										//ciclo che copia in string_ricerca il campo di ricerca passato per parametro
 		if(tipo == 'n'){
 			strcpy(string_ricerca,classifica[i].array.nome);
 			var = true;
@@ -876,7 +876,7 @@ bool ricerca_artisti(char *string,char tipo,int id_utente){
 			strcpy(string_ricerca,classifica[i].array.nazione);
 			var = true;
 		}
-		if(tipo == 'a'){
+		if(tipo == 'a'){										//e' possibile ricercare l'anno solo se e' presente nella struct artista 
 			condizione_secondo_ciclo = false;
 			if(classifica[i].array.anno_inizio == atoi(string)){
 				if(!var){
@@ -891,24 +891,24 @@ bool ricerca_artisti(char *string,char tipo,int id_utente){
 			}
 		}
 
-		lung_string_ricerca = strlen(string_ricerca);
-		lung_pattern = strlen(string);
-		differenza_lunghezze = lung_string_ricerca-lung_pattern;
+		lung_string_ricerca = strlen(string_ricerca); 			//copia la lunghezza della stringa inserita in input per la ricerca
+		lung_pattern = strlen(string);							//copia la lunghezza della stringa su cui viene effettuato il confronto
+		differenza_lunghezze = lung_string_ricerca-lung_pattern;//tiene conto della differenza di lunghezza tra la stringa di ricerca e quella da file
 
 		if(condizione_generi){//blocco per ricerca generi
-			for(int h = 0;h<classifica[i].array.numero_generi;h++){
+			for(int h = 0;h<classifica[i].array.numero_generi;h++){ //ciclo per la ricerca dei generi 
 				strcpy(string_ricerca,classifica[i].array.genere[h]);
 				punteggio_generi = 0;
 				lung_string_ricerca = strlen(string_ricerca);
 				lung_pattern = strlen(string);
 				differenza_lunghezze = lung_string_ricerca-lung_pattern;
 
-				punteggio_generi = algoritmo_ricerca(string_ricerca,string);
+				punteggio_generi = algoritmo_ricerca(string_ricerca,string);// esegue la ricerca e ritorna il risultato
 				pt = 0;
 				if(punteggio_generi == lung_pattern && lung_pattern == lung_string_ricerca){
 					if(condizione_secondo_ciclo){
 						printf("Genere trovato \n");
-						printf("ID             NOME       PRODUTTORE         NAZIONE ANNO INIZIO       GENERE/I\n");
+						printf("ID             NOME       PRODUTTORE         NAZIONE ANNO INIZIO       GENERE/I\n"); //stampa il rislutato ottenuto dalla ricerca
 					}
 					h = classifica[i].array.numero_generi;
 					posizione_vettore = i;
@@ -932,7 +932,7 @@ bool ricerca_artisti(char *string,char tipo,int id_utente){
 			if(punteggio_finale[i] == lung_pattern && lung_pattern == lung_string_ricerca){
 				if(condizione_secondo_ciclo){
 					printf("Artista trovato\n");
-					printf("ID             NOME      PRODUTTORE          NAZIONE ANNO INIZIO       GENERE/I\n");
+					printf("ID             NOME      PRODUTTORE          NAZIONE ANNO INIZIO       GENERE/I\n");// stampa l'artista corrispondente al campo di ricerca inserito
 				}
 				stampa_struct_artista(classifica[i].array);
 				vettore_posizioni[xd] = i;
@@ -948,7 +948,7 @@ bool ricerca_artisti(char *string,char tipo,int id_utente){
 	}
 
 	if(condizione_secondo_ciclo){
-		for(int i = 0;i<n-1;i++){//ordinamento per punteggio crescente
+		for(int i = 0;i<n-1;i++){//ordinamento selection sort
 			min = i;
 			for(int j = i+1;j<n;j++){
 				if(classifica[j].punti<classifica[min].punti){
@@ -963,7 +963,7 @@ bool ricerca_artisti(char *string,char tipo,int id_utente){
 		max = classifica[n-1].punti;
 		h = 0;
 		int j = 0;
-		if(max >= 3){
+		if(max >= 3){				//ricerca approssimativa che stampa gli artisti che hanno ricevuto un punteggio maggiore in confronto alla stringa di ricerca inserita 
 			printf("Forse cercavi:\n");
 			printf("ID             NOME      PRODUTTORE         NAZIONE ANNO INIZIO        GENERE/I\n");
 			var = true;
@@ -995,7 +995,7 @@ bool ricerca_artisti(char *string,char tipo,int id_utente){
 
 	int i = 0;
 	bool condizione_caratteri;
-	if((condizione_secondo_ciclo || condizione_generi || tipo == 'p' || tipo == 'h' || tipo == 'a') && var && xd!= 1){
+	if((condizione_secondo_ciclo || condizione_generi || tipo == 'p' || tipo == 'h' || tipo == 'a') && var && xd!= 1){//in caso di risultati approssimati chiede l'ID dell'utente da inserire
 		do{
 			var1 = true;
 			do{
