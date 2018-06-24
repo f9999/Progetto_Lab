@@ -1,55 +1,96 @@
+/*
+ ============================================================================
+ Name        : speriamo.c
+ Author      : 
+ Version     :
+ Copyright   : Your copyright notice
+ Description : Hello World in C, Ansi-style
+ ============================================================================
+ */
+
+
+/**
+ * @file    main.c
+ * @author  Dimiccoli Davide & Fuccilli Francesco
+ * @version 1.0
+ */
+
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
 #include <stdbool.h>
 #include <time.h>
 #include <ctype.h>
-#include "function.h" 
-#define MAX 50
+#include "function.h"
+/**
+ * @brief Costante per definire la lunghezza massima delle stringhe in input
+ */
+#define MAX 80
+/**
+ * @brief Costante per definire il numero massimo di generi
+ */
+#define MAX_GENERI 10
+/**
+ * @brief Costante per definire il numero di caratteri da leggere in caso di un input intero compreso tra
+ * -9999 e 9999 oppure per stringhe aventi massimo 4 caratteri
+ */
+#define MAX_NUM_INPUT 5
 
-
-
+/**
+ * @brief Struttura dati utilizzata per contenere una determinata data
+ */
 struct data{
 	int giorno,mese,anno;
 };
+/**
+ * @brief Struttura dati utilizzata per contenere i dati dell'utente e dell'admin
+ * utente e admin sono differenziati l'uno dall'altro attraverso il parametro tipo[10]
+ */
 struct utente {
 	int id;
-	char nome[80];
-	char cognome[80];
-	char user[80];
-	char password[80];
+	char nome[MAX];
+	char cognome[MAX];
+	char user[MAX];
+	char password[MAX];
 	char tipo[10];
 	struct data data_nascita;
 	struct data data_iscrizione;
 
 };
+/**
+ * @brief Struttura dati utilizzata per contenere i dati dell'artista
+ * il campo genere puo' contenere piu' stringhe
+ */
 struct artista {
 	int id;
-	char nome[80];
+	char nome[MAX];
 	int numero_generi;
-	char genere[80][20];
-	char produttore[80];
-	char nazione[80];
+	char genere[MAX][MAX_GENERI];
+	char produttore[MAX];
+	char nazione[MAX];
 	int anno_inizio;
 };
+/**
+ * @brief Struttura dati utilizzata per contenere i dati della preferenza
+ */
 struct preferenza{
 	int id_utente,id_artista;
 	char scelta[15];
 };
 
 
-
+/**
+ * Il main contiene il menu' relativo all'admin e all'utente e le relative chiamate di funzione.
+ */
 int main(){
 
-	char nome[80],password[80],utente_file[80],cognome[80],*txt_utente="user.csv",*txt_artisti="artisti.csv";
-	struct utente utenti[MAX],utente_registrato,admin_loggato,var;
-	struct artista artisti[MAX],artista;
-	struct preferenza prefereza_utenti[MAX];
-	int risposta,risposta_aut,numero;
-	int giorno,mese,anno,id_lol,varr=0;
-	bool condizione=true,admin=false,user=false,app;
-	char *string_pd,dio[200],appogio[200],risposta_primaria[100],var12;
-	struct utente utente_log;
+	char nome[80],password[80],*txt_utente="user.csv",*txt_artisti="artisti.csv";
+	struct utente utente_registrato,var;
+	struct artista artista;
+	int numero;
+	int varr=0;
+	bool condizione=true,app;
+	char risposta_primaria[100],var12;
 	printf("---------------------SPOTIFY---------------------\n");
 	do{
 	printf("Registrazione o login? <registrazione>/<login>\n");
@@ -64,10 +105,10 @@ int main(){
 			printf("---------------------LOGIN---------------------\n");
 			printf("Inserisci user:");
 			fflush(stdin);
-			fgets(nome,50,stdin);
+			fgets(nome,MAX,stdin);
 			printf("Inserisci password:");
 			fflush(stdin);
-			fgets(password,50,stdin);
+			fgets(password,MAX,stdin);
 			strtok(password,"\n");
 			strtok(nome,"\n");
 			var=autenticazione(nome,password);
@@ -91,14 +132,13 @@ int main(){
 		}
 	}while(condizione);
 	system("cls");
-	int scelta_1,scelta_2,n;
+	int scelta_1,scelta_2;
 	char scelta_3[20],mista[20];
-	bool condizione_sw=true,condizione_alphanum,condizione_while;
+	bool condizione_sw=true,condizione_while;
 	char string[20],franco;
 	struct artista artista_da_modificare,artista_modificato;
 	struct utente admin_to_add;
-	char continua[80],app2[200],string_da_modificare[20];
-	struct utente admin_modificato;
+	char continua[80],string_da_modificare[20];
 	if(strcmp(var.tipo,"admin")==0){
 		do{
 			printf("---------------------MENU'---------------------\n");
@@ -107,7 +147,7 @@ int main(){
 			printf("[3] Per aggiungere, modificare o eliminare admin\n");
 			printf("[4] TERMINA.\n");
 			fflush(stdin);
-			fgets(mista,3,stdin);
+			fgets(mista,MAX_NUM_INPUT,stdin);
 			scelta_1=atoi(mista);
 			//system("cls");
 			if(scelta_1==1)
@@ -131,7 +171,7 @@ int main(){
 			printf("[3] Per eliminare un %s\n",string);
 			printf("[4] Per tornare indietro \n");
 			fflush(stdin);
-			fgets(mista,3,stdin);
+			fgets(mista,MAX_NUM_INPUT,stdin);
 			scelta_2=atoi(mista);
 			//system("cls");
 			switch(scelta_2){
@@ -141,24 +181,24 @@ int main(){
 						do{
 							fflush(stdin);
 							printf("Inserire il nome:");
-							fgets(artista.nome,80,stdin);
+							fgets(artista.nome,MAX,stdin);
 							do{
 								printf("Inserire numero di generi:");
 								fflush(stdin);
-								fgets(mista,3,stdin);
+								fgets(mista,MAX_NUM_INPUT,stdin);
 								artista.numero_generi=atoi(mista);
-							}while(alfanumerico(mista) || artista.numero_generi<=0 || artista.numero_generi>10);
+							}while(alfanumerico(mista) || artista.numero_generi<=0 || artista.numero_generi>MAX_GENERI);
 							for(int i=0;i<artista.numero_generi;i++){
 								fflush(stdin);
 								printf("Inserire il genere n.%d:",i+1);
-								fgets(artista.genere[i],80,stdin);
+								fgets(artista.genere[i],MAX,stdin);
 							}
 							fflush(stdin);
 							printf("Inserire il produttore:");
-							fgets(artista.produttore,80,stdin);
+							fgets(artista.produttore,MAX,stdin);
 							fflush(stdin);
 							printf("Inserire la nazionalita':");
-							fgets(artista.nazione,80,stdin);
+							fgets(artista.nazione,MAX,stdin);
 							fflush(stdin);
 							do{
 								printf("Inserire la data di inizio attivita':");
@@ -171,7 +211,7 @@ int main(){
 							do{
 								printf("Desideri aggiungere altri artisti?<si><no>\n");
 								fflush(stdin);
-								fgets(scelta_3,10,stdin);
+								fgets(scelta_3,MAX_NUM_INPUT,stdin);
 								franco=controllo_risposta(scelta_3,'q');
 							}while(franco=='r');
 						}while(franco=='s');
@@ -185,7 +225,7 @@ int main(){
 							do{
 								printf("Desideri aggiungere altri utenti?<si><no>\n");
 								fflush(stdin);
-								fgets(scelta_3,10,stdin);
+								fgets(scelta_3,MAX_NUM_INPUT,stdin);
 								franco=controllo_risposta(scelta_3,'q');
 							}while(franco=='r');
 						}while(franco=='s');
@@ -201,7 +241,7 @@ int main(){
 							do{
 								printf("Desideri aggiungere altri admin?<si><no>\n");
 								fflush(stdin);
-								fgets(scelta_3,10,stdin);
+								fgets(scelta_3,MAX_NUM_INPUT,stdin);
 								franco=controllo_risposta(scelta_3,'q');
 							}while(franco=='r');
 						}while(franco=='s');
@@ -215,7 +255,7 @@ int main(){
 						do{
 							printf("Desideri visualizzare l'elenco degli artisti iscritti?<si><no>\n");
 							fflush(stdin);
-							fgets(scelta_3,3,stdin);
+							fgets(scelta_3,MAX_NUM_INPUT,stdin);
 							if(controllo_risposta(scelta_3,'q')=='s'){
 								visualizza_elenco('a',txt_artisti);
 							}
@@ -224,7 +264,7 @@ int main(){
 								do{
 									printf("Inserisci l'ID dell'artista da modificare<ID>\n");
 									fflush(stdin);
-									fgets(mista,4,stdin);
+									fgets(mista,MAX_NUM_INPUT,stdin);
 									numero=atoi(mista);
 								}while(alfanumerico(mista) || numero<0 );
 								visualizza_dati_id(numero,txt_artisti,'a',string_da_modificare);
@@ -241,7 +281,7 @@ int main(){
 							do{
 								printf("Desideri continuare a modificare altre informazioni?<si><no>\n");
 								fflush(stdin);
-								fgets(continua,3,stdin);
+								fgets(continua,MAX_NUM_INPUT,stdin);
 								franco=controllo_risposta(continua,'q');
 							}while(franco=='r');
 
@@ -257,7 +297,7 @@ int main(){
 							do{
 								printf("Desideri visualizzare l'elenco degli utenti iscritti?<si><no>\n");
 								fflush(stdin);
-								fgets(continua,3,stdin);
+								fgets(continua,MAX_NUM_INPUT,stdin);
 								franco=controllo_risposta(continua,'q');
 							}while(franco=='r');
 							if(franco=='s')
@@ -267,7 +307,7 @@ int main(){
 								do{
 									printf("Inserisci l'ID dell'utente da modificare\n");
 									fflush(stdin);
-									fgets(mista,3,stdin);
+									fgets(mista,MAX_NUM_INPUT,stdin);
 									numero=atoi(mista);
 								}while(alfanumerico(mista) || numero<0);
 								visualizza_dati_id(numero,txt_utente,'u',string_da_modificare);
@@ -284,7 +324,7 @@ int main(){
 							do{
 								printf("Desideri continuare a modificare altre informazioni?<si><no>\n");
 								fflush(stdin);
-								fgets(continua,3,stdin);
+								fgets(continua,MAX_NUM_INPUT,stdin);
 								franco=controllo_risposta(continua,'q');
 							}while(franco=='r');
 						}while(franco=='s' || condizione);
@@ -297,7 +337,7 @@ int main(){
 							do{
 								printf("Desideri visualizzare l'elenco degli admin iscritti?<si><no>\n");
 								fflush(stdin);
-								fgets(scelta_3,3,stdin);
+								fgets(scelta_3,MAX_NUM_INPUT,stdin);
 							}while(controllo_risposta(scelta_3,'q')=='r');
 							if(controllo_risposta(scelta_3,'q')=='s'){
 								visualizza_elenco('s',txt_utente);
@@ -309,7 +349,7 @@ int main(){
 									do{
 										printf("Inserire l'ID dell'admin da modificare:\n");
 										fflush(stdin);
-										fgets(mista,10,stdin);
+										fgets(mista,MAX_NUM_INPUT,stdin);
 										fflush(stdin);
 										numero=atoi(mista);
 									}while(alfanumerico(mista) || numero<0);
@@ -329,7 +369,7 @@ int main(){
 							do{
 							printf("Desideri continuare a modificare altre informazioni?<si><no>\n");
 								fflush(stdin);
-								fgets(continua,3,stdin);
+								fgets(continua,MAX_NUM_INPUT,stdin);
 							}while(controllo_risposta(continua,'q')=='r');
 						}while(controllo_risposta(continua,'q')=='s');
 					}
@@ -346,7 +386,7 @@ int main(){
 						do{
 							printf("Desideri visualizzare l'elenco degli artisti?<si><no> \n");
 							fflush(stdin);
-							fgets(scelta_elenco,3,stdin);
+							fgets(scelta_elenco,MAX_NUM_INPUT,stdin);
 						}while(controllo_risposta(scelta_elenco,'q')=='r');
 						if(controllo_risposta(scelta_elenco,'q')=='s'){
 							visualizza_elenco('a',txt_artisti);
@@ -357,7 +397,7 @@ int main(){
 								do{
 									printf("Inserire l'ID dell'artista da eliminare:\n");
 									fflush(stdin);
-									fgets(mista,3,stdin);
+									fgets(mista,MAX_NUM_INPUT,stdin);
 									id_to_delete=atoi(mista);
 									appoggio.id=id_to_delete;
 								}while(alfanumerico(mista) || numero<0);
@@ -377,19 +417,18 @@ int main(){
 							do{
 								printf("Desideri eliminare altri artisti?<si><no>\n");
 								fflush(stdin);
-								fgets(scelta_to_continue,3,stdin);
+								fgets(scelta_to_continue,MAX_NUM_INPUT,stdin);
 							}while(controllo_risposta(scelta_to_continue,'q')=='r');
 						}while(controllo_risposta(scelta_to_continue,'q')=='s');
 					}
 
 					else if(scelta_1==2){
 						struct utente appoggio;
-						bool condizione_alphanum;
 						do{
 							do{
 								printf("Desideri visualizzare l'elenco degli utenti?<si><no>\n");
 								fflush(stdin);
-								fgets(scelta_to_continue,3,stdin);
+								fgets(scelta_to_continue,MAX_NUM_INPUT,stdin);
 							}while(controllo_risposta(scelta_to_continue,'q')=='r');
 							if(controllo_risposta(scelta_to_continue,'q')=='s'){
 								visualizza_elenco('u',txt_utente);
@@ -398,10 +437,9 @@ int main(){
 								do{
 									condizione_while=false;
 									do{
-										condizione_alphanum=false;
 										printf("Inserire l'ID dell'user da eliminare:\n");
 										fflush(stdin);
-										fgets(mista,3,stdin);
+										fgets(mista,MAX_NUM_INPUT,stdin);
 										id_to_delete=atoi(mista);
 										appoggio.id=id_to_delete;
 									}while(alfanumerico(mista) || numero<0);
@@ -420,18 +458,17 @@ int main(){
 							do{
 								printf("Desideri eliminare altri utenti?<si><no>\n");
 								fflush(stdin);
-								fgets(scelta_to_continue,3,stdin);
+								fgets(scelta_to_continue,MAX_NUM_INPUT,stdin);
 							}while(controllo_risposta(scelta_to_continue,'q')=='r');
 						}while(controllo_risposta(scelta_to_continue,'q')=='s');
 					}
 					else if(scelta_1==3){
 						struct utente appoggio;
-						bool condizione_alphanum;
 						do{
 							do{
 								printf("Desideri visualizzare l'elenco degli admin?<si><no>\n");
 								fflush(stdin);
-								fgets(scelta_to_continue,3,stdin);
+								fgets(scelta_to_continue,MAX_NUM_INPUT,stdin);
 							}while(controllo_risposta(scelta_to_continue,'q')=='r');
 							if(controllo_risposta(scelta_to_continue,'q')=='s'){
 								visualizza_elenco('s',txt_utente);
@@ -442,7 +479,7 @@ int main(){
 									do{
 										printf("Inserire l'ID dell'admin da eliminare:\n");
 										fflush(stdin);
-										fgets(mista,3,stdin);
+										fgets(mista,MAX_NUM_INPUT,stdin);
 										id_to_delete=atoi(mista);
 										appoggio.id=id_to_delete;
 									}while(alfanumerico(mista) || numero<0);
@@ -468,7 +505,7 @@ int main(){
 							do{
 								printf("Desideri eliminare altri admin?<si><no>\n");
 								fflush(stdin);
-								fgets(scelta_to_continue,3,stdin);
+								fgets(scelta_to_continue,MAX_NUM_INPUT,stdin);
 							}while(controllo_risposta(scelta_to_continue,'q')=='r');
 						}while(controllo_risposta(scelta_to_continue,'q')=='s');
 					}
@@ -484,9 +521,9 @@ int main(){
 		}while(condizione_sw);
 	}
 	if(strcmp(var.tipo,"user")==0){
-		char risposta_user[10],string_id[200],scelta_modifica_dati[10],continua[10],var5;
+		char string_id[200],var5;
 		int scelta;
-		struct utente dati_utente_log,utente_modificato;
+		struct utente utente_modificato;
 		bool condizione_do=false,condizione_profilo=false;
 		do{
 			printf("---------------------MENU'---------------------\n");
@@ -496,27 +533,27 @@ int main(){
 			printf("[4] Logout\n");
 			printf("risposta: ");
 			fflush(stdin);
-			fgets(mista,3,stdin);
+			fgets(mista,MAX_NUM_INPUT,stdin);
 			scelta=atoi(mista);
 			system("cls");
 		switch(scelta){
 			case 1://ricerca approssimata
 				printf("---------------------RICERCA---------------------\n");
 				bool condizione,app,condizione_caratteri;
-				char risposta[20],scelta_to_continue[20];
+				char risposta[20];
 				do{
 					condizione=true;
 					do{
 						fflush(stdin);
 						printf("Inserisci il campo di ricerca<nome><genere><produttore><nazione><anno>\n");
 
-						fgets(risposta,80,stdin);
+						fgets(risposta,MAX,stdin);
 						to_minuscolo(risposta);
 						if(strcmp(strtok(risposta,"\n"),"nome")==0){
 							condizione=false;
 							printf("Inserisci nome artista\n");
 							fflush(stdin);
-							fgets(risposta,20,stdin);
+							fgets(risposta,MAX,stdin);
 							strtok(risposta,"\n");
 							app=ricerca_artisti(risposta,'n',var.id);
 						}
@@ -524,7 +561,7 @@ int main(){
 							printf("Inserisci un genere musicale\n");
 							condizione=false;
 							fflush(stdin);
-							fgets(risposta,20,stdin);
+							fgets(risposta,MAX,stdin);
 							strtok(risposta,"\n");
 							app=ricerca_artisti(risposta,'g',var.id);
 						}
@@ -532,7 +569,7 @@ int main(){
 							printf("Inserisci un produttore\n");
 							condizione=false;
 							fflush(stdin);
-							fgets(risposta,20,stdin);
+							fgets(risposta,MAX,stdin);
 							strtok(risposta,"\n");
 							app=ricerca_artisti(risposta,'p',var.id);
 						}
@@ -540,7 +577,7 @@ int main(){
 							printf("Inserisci una nazione\n");
 							condizione=false;
 							fflush(stdin);
-							fgets(risposta,20,stdin);
+							fgets(risposta,MAX,stdin);
 							strtok(risposta,"\n");
 							app=ricerca_artisti(risposta,'h',var.id);
 						}
@@ -550,7 +587,7 @@ int main(){
 								printf("Inserisci anno di inizio attivita'\n");
 								condizione=false;
 								fflush(stdin);
-								fgets(risposta,20,stdin);
+								fgets(risposta,MAX,stdin);
 								strtok(risposta,"\n");
 								for(int i=0;i<strlen(risposta);i++){
 									if(isalpha(risposta[i])>0 || isspace(risposta[i])>0)
@@ -564,7 +601,7 @@ int main(){
 					do{
 						printf("Desideri effettuare un'altra ricerca?<si><no>\n");
 						fflush(stdin);
-						fgets(scelta_3,10,stdin);
+						fgets(scelta_3,MAX_NUM_INPUT,stdin);
 						franco=controllo_risposta(scelta_3,'q');
 					}while(franco=='r');
 				}while(franco=='s');
@@ -575,7 +612,7 @@ int main(){
 				do{
 					printf("Vuoi visualizzare la top 10 ascoltati o piaciuti?<ascoltati><piaciuti>\n");
 					fflush(stdin);
-					fgets(risposta,100,stdin);
+					fgets(risposta,MAX,stdin);
 				}while((var5=controllo_risposta(risposta,'a'))=='r');
 				ordinamento_artisti(var5,var.id);
 				system("cls");
@@ -589,7 +626,7 @@ int main(){
 					printf("[4] Torna indietro\n");
 					printf("risposta: ");
 					fflush(stdin);
-					fgets(mista,3,stdin);
+					fgets(mista,MAX_NUM_INPUT,stdin);
 					scelta=atoi(mista);
 					system("cls");
 					condizione_profilo=false;
@@ -601,7 +638,7 @@ int main(){
 							printf("Vuoi modificare i tuoi dati?[si/no]\n");
 							do{
 								fflush(stdin);
-								fgets(scelta_3,10,stdin);
+								fgets(scelta_3,MAX_NUM_INPUT,stdin);
 								franco=controllo_risposta(scelta_3,'q');
 							}while(franco=='r');
 							if(franco=='s'){
@@ -624,7 +661,7 @@ int main(){
 							do{
 								printf("Sei sicuro di voler eliminare il tuo profilo?<si><no>\n");
 								fflush(stdin);
-								fgets(risposta,3,stdin);
+								fgets(risposta,MAX_NUM_INPUT,stdin);
 								franco=controllo_risposta(risposta,'q');
 							}while(franco=='r');
 							if(franco=='s'){
