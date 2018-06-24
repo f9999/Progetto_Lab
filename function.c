@@ -1034,7 +1034,7 @@ bool ascolti_or_preferenze(int id_utente,int id_artista,char *nome_artista){
 	char risposta[20],string[100];
 	do{
 		citronella = true;
-		printf("Vuoi ascoltare o lasciare una preferenza?[ascolto/preferenza]\n");
+		printf("Vuoi ascoltare o lasciare una preferenza?[ascolto/preferenza]\n"); //richiesta per immetttere un ascolto o una preferenza
 		fflush(stdin);
 		fgets(risposta,100,stdin);
 		if(strcmp(strtok(risposta,"\n"),"ascolto") == 0)
@@ -1046,12 +1046,12 @@ bool ascolti_or_preferenze(int id_utente,int id_artista,char *nome_artista){
 	if(strcmp(strtok(risposta,"\n"),"ascolto") == 0){
 		risultato = inserimento_ascolti_e_preferenze(id_artista,id_utente,'a');
 		if(risultato)
-			printf("Hai appena ascoltato:%s\n",nome_artista);
+			printf("Hai appena ascoltato:%s\n",nome_artista);					//stampa l'ascolto effettuato
 		else
-			printf("Hai gia' ascoltato questo artista.\n");
+			printf("Hai gia' ascoltato questo artista.\n");						//messaggio di errore in caso l'artista e' stato gia' ascoltato
 		controllo_funzioni(risultato,'a');
 	}
-	if(strcmp(strtok(risposta,"\n"),"preferenza") == 0){
+	if(strcmp(strtok(risposta,"\n"),"preferenza") == 0){						//controlla se vi sono presenti preferenze all'artista inserito e rimanda alla funzione inserimento_ascolti_preferenze
 		do{
 			sprintf(string,"%d;%d;like\n",id_utente,id_artista);
 			if(controllo_file_preferenze(string)){
@@ -1070,7 +1070,7 @@ bool ascolti_or_preferenze(int id_utente,int id_artista,char *nome_artista){
 				condizione = false;
 				continue;
 			}
-			printf("Like o dislike?<like><dislike>\n");
+			printf("Like o dislike?<like><dislike>\n");							//se non vi sono preferenze chiede di inserirne una
 			fflush(stdin);
 			fgets(risposta,100,stdin);
 			if(strcmp(strtok(risposta,"\n"),"like") == 0){
@@ -1088,40 +1088,40 @@ bool ascolti_or_preferenze(int id_utente,int id_artista,char *nome_artista){
 }
 
 /**
- * La funzione calcola il
+ * La funzione calcola un punteggio in base alla stringa di ricerca inserita e quella presente da file
  * @param char *text Testo su cui effettuare la ricerca
  * @param char *pattern Testo con cui si effettua la ricerca
- * @return Un intero
+ * @return Un punteggio relativo ai risultati di ricerca
  */
-int algoritmo_ricerca(char *text,char *pattern){
+int algoritmo_ricerca(char *text,char *pattern){			//ricerca approssimativa
 	int lung_string_ricerca,lung_pattern,differenza_lunghezze;
 	int m,punteggio_parziale,punteggio_finale;
-	lung_string_ricerca = strlen(text);
-	lung_pattern = strlen(pattern);
-	if(lung_string_ricerca >= lung_pattern)
+	lung_string_ricerca = strlen(text);						//text e' la variabile che deve essere confrontata con il pattern
+	lung_pattern = strlen(pattern);							//il pattern e' la stringa inserita dall'utente
+	if(lung_string_ricerca >= lung_pattern)					//se text ha lunghezza minore del pattern la differenza e' data da pattern-text
 		differenza_lunghezze = lung_string_ricerca-lung_pattern;
 	else
-		differenza_lunghezze = lung_pattern-lung_string_ricerca;
-	for(int j = 0;j <= differenza_lunghezze;j++){
+		differenza_lunghezze = lung_pattern-lung_string_ricerca; //altrimeti text-pattern
+	for(int j = 0;j <= differenza_lunghezze;j++){				//ciclo che si ripete per il numero della lunghezza della differenza delle stringhe
 		m = 0;
 		punteggio_parziale = 0;
 		for(int l = j;m<lung_pattern;l++){
-			if(tolower(text[l]) == tolower(pattern[m])){
+			if(tolower(text[l]) == tolower(pattern[m])){		//programmazione difensiva che converte le stringhe in stamaptello in minuscolo
 				punteggio_parziale++;
 			}
 			m++;
 		}
 		if(lung_string_ricerca == lung_pattern && punteggio_parziale == lung_pattern){
+			punteggio_finale = punteggio_parziale;				//assegnazione del punteggio finale nel caso in cui la stringa inserita e' equivalente a quella del file
+			continue;
+		}
+		if(punteggio_parziale == lung_pattern){					//assegnazione del punteggio finale nel caso in cui la stringa inserica e' equivalente a una parte della stringa da file
 			punteggio_finale = punteggio_parziale;
 			continue;
 		}
-		if(punteggio_parziale == lung_pattern){
-			punteggio_finale = punteggio_parziale;
-			continue;
-		}
-		if(j == 0)
-			punteggio_finale = punteggio_parziale;
-		if(punteggio_parziale>punteggio_finale  && j>0)
+		if(j == 0)												//al primo ciclo il primo punteggio parziale trovato viene assegnato in quello finale
+			punteggio_finale = punteggio_parziale;				
+		if(punteggio_parziale>punteggio_finale  && j>0)			//in quelli successivi scambia il punteggio finale se ne viene trovato uno parziale maggiore
 			punteggio_finale = punteggio_parziale;
 	}
 	return punteggio_finale;
@@ -1136,26 +1136,26 @@ int algoritmo_ricerca(char *text,char *pattern){
  */
 int controllo_nome(char *nome,char *txt){
 	FILE *in;
-	in = fopen(txt,"r");
+	in = fopen(txt,"r"); //prende in input il file da aprire
 	struct utente app;
 	struct artista app2;
 	int risultato = 0;
 	char string_f[200];
-	while(fgets(string_f,200,in)!= NULL && risultato!= -1){
+	while(fgets(string_f,200,in)!= NULL && risultato!= -1){	//legge da file le informazioni relative alla nome inserito
 		if(strcmp(txt,"user.csv") == 0){
 			app.id = atoi(strtok(string_f,";"));
 			strcpy(app.nome,strtok(NULL,";"));
 			strcpy(app.cognome,strtok(NULL,";"));
 			strcpy(app.user,strtok(NULL,";"));
 			risultato = app.id;
-			if(strcmp(app.user,strtok(nome,"\n")) == 0)
+			if(strcmp(app.user,strtok(nome,"\n")) == 0)		//ritorna -1 se gia' presente
 				risultato = -1;
 		}
 		if(strcmp(txt,"artisti.csv") == 0){
 			app2.id = atoi(strtok(string_f,";"));
 			strcpy(app2.nome,strtok(NULL,";"));
 			risultato = app2.id;
-			if(strcmp(app2.nome,strtok(nome,"\n")) == 0)
+			if(strcmp(app2.nome,strtok(nome,"\n")) == 0)	//ritorna -1 se gia' presente
 				risultato = -1;
 		}
 	}
