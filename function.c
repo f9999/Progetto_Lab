@@ -5,29 +5,30 @@
 #include <stdbool.h>
 #include <time.h>
 #include <ctype.h>
-#define MAX 50
+#define MAX 80
+#define MAX_GENERI 10
+
 
 struct data{
 	int giorno,mese,anno;
 };
 struct utente {
 	int id;
-	char nome[80];
-	char cognome[80];
-	char user[80];
-	char password[80];
+	char nome[MAX];
+	char cognome[MAX];
+	char user[MAX];
+	char password[MAX];
 	char tipo[10];
 	struct data data_nascita;
 	struct data data_iscrizione;
-
 };
 struct artista {
 	int id;
-	char nome[80];
+	char nome[MAX];
 	int numero_generi;
-	char genere[80][20];
-	char produttore[80];
-	char nazione[80];
+	char genere[MAX][MAX_GENERI];
+	char produttore[MAX];
+	char nazione[MAX];
 	int anno_inizio;
 };
 struct preferenza{
@@ -36,7 +37,13 @@ struct preferenza{
 };
 
 
-
+/**
+ * La funzione controlla se la data inserita è valida.
+ * Viene controllato il giorno, il mese e l'anno, se essi sono validi,
+ * se si hanno piu di 18 anni, se si anno più di 100 anni
+ * @param struct data b_day Struttura contenente la data
+ * @return True se la data è corretta, False se è errata (minorenne o maggiore di 100 anni, etc).
+ */
 bool controllo_data_nascita(struct data b_day){
 	time_t rawtime;
  	time (&rawtime);
@@ -78,6 +85,14 @@ bool controllo_data_nascita(struct data b_day){
 	return risultato;
 }
 
+/**
+ * La funzione chiede in input all'utente i vari campi per registrarsi e controlla se il campo user,
+ * password,data di nascita sono corretti.
+ * La password deve contenere minimo 6 caratteri
+ * L'user deve essere unico
+ * La data di nascita deve essere corretta e l'utente deve essere maggiorenne
+ * @return Struct utente contenente i dati inseriti correttamente.
+ */
 struct utente input_registrazione(){
 	struct utente app;
 	int var = -1;
@@ -162,11 +177,15 @@ struct utente input_registrazione(){
 	return app;
 }
 
-//funzionante per utenti
+/**
+ * La funzione inserisce in coda al file i dati dell'utente che vuole registrarsi
+ * @param struct utente utente La struttura contenente i dati
+ * @return True se la funzione ha inserito correttamente i dati sul file, False se non ha
+ * inserito i dati sul file.
+ */
 bool registrazione(struct utente utente){
-	char nome[80],cognome[80],user[80],string_f[200];
-	int id = 0,res,app = 0;
-	bool condizione = true,risultato;
+	int app = 0,id = 0;
+	bool risultato;
 	id = controllo_nome(utente.user,"user.csv");
 	FILE *out;
 	out = fopen("user.csv","a");
@@ -187,23 +206,27 @@ bool registrazione(struct utente utente){
 
 }
 
-//funzionante per utenti e admin
+/**
+ * La funzione controlla se la password inserita dall'utente appartiene al nome inserito dall'utente.
+ * La funzione restituisce la struct utente contenete i dati di quest'ultimo oppure una struct utente
+ * con il campo id impostato a "-1" in caso di errore
+ * @param char* nome Stringa contenente il nome dell'utente
+ * @param char* password Stringa contenente la password dell'utente
+ * @return struct utente con i suoi dati oppure struct utente con il campo id impostato a "-1"
+ */
 struct utente  autenticazione(char *nome,char *password){
-	int res = 0,id,i = 0,risultato;
 	bool condizione_admin = true;
 	struct utente var;
-	char nome_f[50],cognome_f[50],user_f[50],password_f[50],appoggio[200],string_f[200];
+	char string_f[200];
 	FILE *in;
 	in = fopen("user.csv","r");
 	rewind(in);
-
 	while(condizione_admin && fgets(string_f,200,in)!= NULL){
 		var = string_to_struct_utente(string_f);
 		if(strcmp(var.user,nome) == 0)
 			if(strcmp(var.password,password) == 0){
 				condizione_admin = false;
 			}
-
 	}
 	if(condizione_admin){
 		var.id = -1;
@@ -212,11 +235,17 @@ struct utente  autenticazione(char *nome,char *password){
 	return var;
 }
 
+
+/**
+ * La funzione inserisce in coda al file i dati dell'artista,
+ * vengono effettuati i controlli sul nome che deve essere univoco ed
+ * anche sulla data di inizio attività
+ * @param struct artista artista La struttura contenente i dati dell'artista
+ * @return True se la funzione ha inserito correttamente i dati sul file, False se non ha
+ * inserito i dati sul file.
+ */
 bool aggiungi_artista(struct artista artista){
-	FILE *in;
-	in = fopen("artisti.csv","r");
-	char nome[80],genere[80],produttore[80],nazionalita[80],string_f[200];
-	int id = 0,res,app = 0;
+	int id = 0,app = 0;
 	bool condizione = true,risultato = false;
 	id = controllo_nome(artista.nome,"artisti.csv");
 	if(id == -1)
@@ -243,9 +272,18 @@ bool aggiungi_artista(struct artista artista){
 	else
 		risultato = false;
 	return risultato;
-
 }
 
+
+/**
+ * La funzione mostra a video delle stringhe che indicano se delle funzioni precedentemente
+ * chiamate anno avuto esito positivo o negativo
+ * @param bool app Valore booleano che indica se un particolare tipo di funzione è stata eseguita correttamente
+ * o meno
+ * @param char tipologia Tipo di controllo('l'->login 'r'->registrazione 'm'->modifica
+ * 'e'->cancellazzione 'a'->ascolto 'i'->like salvato 'd'->dislike salvato
+ *
+ */
 bool controllo_funzioni(bool app,char tipologia){
 	if(app){
 			if(tipologia == 'l')
@@ -283,6 +321,11 @@ bool controllo_funzioni(bool app,char tipologia){
 		}
 }
 
+/**
+ * La funzione mostra a video l'elenco degli artisti o degli admin o degli user.
+ * @param char tipologia Tipo di elenco da visualizzare.
+ * @param char* txt Nome del file da cui leggere l'elenco.
+ */
 bool visualizza_elenco(char tipologia,char *txt){
 	FILE *in;
 	in = fopen(txt,"r");
@@ -314,6 +357,15 @@ bool visualizza_elenco(char tipologia,char *txt){
 	fclose(in);
 }
 
+/**
+ * La funzione mostra a video l'artista o l'admin o l'user corrispondenti all'id
+ * @param int id Id da visualizzare
+ * @param char* txt Nome del file da cui leggere i dati dell'id.
+ * @param char tipologia Tipo di id da leggere ('a'->artisti 'u'->user 's'->admin)
+ * @param char* string Stringa su cui viene effettuato il return.
+ * @return La funzione restituisce una stringa contenente i dati dell'id mostrato a video oppure
+ * la stringa "Errore"
+ */
 char *  visualizza_dati_id(int id, char *txt,char tipologia,char* string){
 	FILE *in;
 	in = fopen(txt,"r");
@@ -359,6 +411,12 @@ char *  visualizza_dati_id(int id, char *txt,char tipologia,char* string){
 
 }
 
+/**
+ * La funzione divide in token la stringa e inseirsce i vari token negli
+ * appositi campi della struct artista
+ * @param char* string Stringa in input da dividere in token.
+ * @return struct artista Contenente i dati della stringa in input inseriti nei vari campi.
+ */
 struct artista string_to_struct_artista(char *string){
 	char app[100];
 	struct artista cipolla;
@@ -385,6 +443,12 @@ struct artista string_to_struct_artista(char *string){
 	return cipolla;
 }
 
+/**
+ * La funzione divide in token la stringa e inseirsce i vari token negli
+ * appositi campi della struct utente
+ * @param char* string Stringa in input da dividere in token.
+ * @return struct utente Contenente i dati della stringa in input inseriti nei vari campi.
+ */
 struct utente string_to_struct_utente(char *string){
 	struct utente origano;
 	origano.id = atoi(strtok(string,";"));
@@ -402,6 +466,10 @@ struct utente string_to_struct_utente(char *string){
 	return origano;
 }
 
+/**
+ * La funzione manda a video la struct artista.
+ * @param struct artista to_print Struttura contenente i dati da visualizzare.
+ */
 void stampa_struct_artista(struct artista to_print){
 	printf("%2d  %15s %15s %15s %11d ",to_print.id,to_print.nome,to_print.produttore,to_print.nazione,to_print.anno_inizio);
 	for(int i = 0;i<to_print.numero_generi;i++){
@@ -410,12 +478,22 @@ void stampa_struct_artista(struct artista to_print){
 	printf("\n");
 }
 
+/**
+ * La funzione manda a video la struct utente.
+ * Attenzione viene stampata anche la password.
+ * @param struct utente to_print Struttura contenente i dati da visualizzare.
+ */
 void stampa_struct_utente(struct utente to_print){
 	printf("%2d %15s %15s %15s %15s       %2d/%2d/%4d\n",to_print.id,to_print.nome,to_print.cognome,to_print.user,to_print.password,
 	to_print.data_nascita.giorno,to_print.data_nascita.mese,to_print.data_nascita.anno);
 }
 
-
+/**
+ * La funzione permette all'admin di modificare i vari campi dell'artista
+ * e controlla che il nome sia univoco e la data corretta.
+ * @param struct artista to_modify Struttura dati da modificare.
+ * @return struct artista Contenente i dati dell'artista modificati.
+ */
 struct artista modifica_dati_struct(struct artista to_modify){
 	char scelta[20],scelta_genere[20],app[20],franco;
 	bool condizione = true,condizione_do_while;
@@ -511,9 +589,15 @@ struct artista modifica_dati_struct(struct artista to_modify){
 	return to_modify;
 }
 
+/**
+ * La funzione permette all'admin di modificare i vari campi dell'artista
+ * e controlla che il nome sia univoco e la data corretta e la password di almeno 6 caratteri.
+ * @param struct utente to_modify Struttura dati da modificare.
+ * @return struct utente Contenente i dati dell'artista modificati.
+ */
 struct utente modifica_dati_struct_utente(struct utente to_modify){
 	char scelta[10],var[20],franco;
-	bool condizione = true,app = true;
+	bool condizione = true;
 	int valore_ritorno;
 	char hold[100];
 
@@ -622,14 +706,21 @@ struct utente modifica_dati_struct_utente(struct utente to_modify){
 
 }
 
-
+/**
+ * La funzione modifica il file dell'artista in base alla tipologia inviata
+ * ('e'->elimina 'm'->modifica)
+ * @param struct artista modificato struttura modificata dall'admin da inserire nel file
+ * @param char tipologia Tipo di modifica del file(cancellazzione o sostituzione).
+ * @return True se la modifica del file è avvenuta  correttamente oppure False se si è verificato un
+ * errore.
+ */
 bool modifica_file_artisti(struct artista modificato,char tipologia){
 	FILE *in,*out;
 	in = fopen("artisti.csv","r");
-	int id,app,dio = 0,k = 0,lol = 0,rosmarino,rosa,n = 0;
+	int app,k = 0,n = 0;
 	struct artista artisti[MAX];
-	bool condizione = true,risultato = false,condizione_id = false;
-	char string_f[200],gesu[200];
+	bool risultato = false,condizione_id = false;
+	char string_f[200];
 	for(int i = 0;fgets(string_f,200,in)!= NULL;i++){
 		n++;
 		artisti[i] = string_to_struct_artista(string_f);
@@ -677,9 +768,17 @@ bool modifica_file_artisti(struct artista modificato,char tipologia){
 
 }
 
+/**
+ * La funzione modifica il file dell'utente in base alla tipologia inviata
+ * ('e'->elimina 'm'->modifica)
+ * @param struct artista modificato struttura modificata dall'admin da inserire nel file
+ * @param char tipologia Tipo di modifica del file(cancellazzione o sostituzione).
+ * @param char tipologia2 Tipo di utente da modificare('u'->user 's'->admin)
+ * @return True se la modifica del file è avvenuta correttamente oppure False se si è verificato un
+ * errore.
+ */
 bool modifica_file_utenti(struct utente modificato,char tipologia,char tipologia2){
 	FILE *in;
-
 	in = fopen("user.csv","r");
 	int n = 0,k = 0,app = 0;
 	char string_f[200];
@@ -731,22 +830,29 @@ bool modifica_file_utenti(struct utente modificato,char tipologia,char tipologia
 	return risultato;
 }
 
+/**
+ * La funzione in base alla tipologia ricevuta('n'->nome 'g'->genere 'a'->anno 'p'->produttore
+ * 'h'->nazione) ricerca degli artisti attraverso un algoritmo e dopo la ricerca è possibile ascoltare o inserire
+ * una preferenza per essi.
+ * @param char* string stringa su cui viene effettuata la ricerca
+ * @param char tipo Tipologia di dato su cui effettuare la ricerca.
+ * @param int id_utente Id dell'utente.
+ * @return True se la funzione viene eseguita senza errori oppure false.
+ */
 bool ricerca_artisti(char *string,char tipo,int id_utente){
-	struct artista array[MAX];
 	struct punti{
 		struct artista array;
 		int punti;
 	};
 	FILE *in;
 	struct punti classifica[MAX],app;
-	char string_f[200],string_ricerca[50],risposta[100],franco,mista[20];
+	char string_f[200],string_ricerca[50],mista[20];
 	int n = 0,punteggio_finale[MAX],max,min,punteggio_generi,xd = 0;
-	int lung_string_ricerca,differenza_lunghezze = 0,m,lung_pattern,punteggio_parziale[MAX];
+	int lung_string_ricerca,lung_pattern,differenza_lunghezze = 0;
 	int posizione_vettore,id_artista,vettore_posizioni[MAX] = {-1};
-	int pt = 0,h = -1,var1,l = 0;
-	bool match_positivo = false,condizione_secondo_ciclo = true,condizione_generi = false;
-	bool risultato,condizione = true,var = false;
-	bool citronella = true;
+	int pt = 0,h = -1,var1;
+	bool condizione_secondo_ciclo = true,condizione_generi = false;
+	bool var = false;
 	in = fopen("artisti.csv","r");
 	for(int i = 0;fgets(string_f,200,in)!= NULL;i++){
 		classifica[i].array = string_to_struct_artista(string_f);
@@ -916,6 +1022,13 @@ bool ricerca_artisti(char *string,char tipo,int id_utente){
 
 }
 
+/**
+ * La funzione si occupa di chiedere all'utente se vuole ascoltare o lasciare una preferenza
+ * @param int id_utente Id dell'utente
+ * @param int id_artista Id dell'artista
+ * @param char *nome_artista Nome dell'artista
+ * @return True se la funzione viene eseguita senza errori oppure false.
+ */
 bool ascolti_or_preferenze(int id_utente,int id_artista,char *nome_artista){
 	bool citronella,risultato,condizione;
 	char risposta[20],string[100];
@@ -957,10 +1070,6 @@ bool ascolti_or_preferenze(int id_utente,int id_artista,char *nome_artista){
 				condizione = false;
 				continue;
 			}
-
-
-
-
 			printf("Like o dislike?<like><dislike>\n");
 			fflush(stdin);
 			fgets(risposta,100,stdin);
@@ -978,6 +1087,12 @@ bool ascolti_or_preferenze(int id_utente,int id_artista,char *nome_artista){
 	}
 }
 
+/**
+ * La funzione calcola il
+ * @param char *text Testo su cui effettuare la ricerca
+ * @param char *pattern Testo con cui si effettua la ricerca
+ * @return Un intero
+ */
 int algoritmo_ricerca(char *text,char *pattern){
 	int lung_string_ricerca,lung_pattern,differenza_lunghezze;
 	int m,punteggio_parziale,punteggio_finale;
@@ -1012,6 +1127,13 @@ int algoritmo_ricerca(char *text,char *pattern){
 	return punteggio_finale;
 }
 
+/**
+ * La funzione controlla se c'è gia un determinato nome per gli artisti
+ *  o un determinato user per gli utenti.
+ * @param char* nome Nome da controllare.
+ * @param *txt Nome del file su cui effetture il controllo.
+ * @return l'id dell'ultimo artista o utente controllato oppure -1 in caso di nome già presente.
+ */
 int controllo_nome(char *nome,char *txt){
 	FILE *in;
 	in = fopen(txt,"r");
@@ -1042,7 +1164,16 @@ int controllo_nome(char *nome,char *txt){
 }
 
 
-
+/**
+ * La funzione inserisce in coda al file "preferenze_ascolto.csv"  l'ascolto o la preferenza espressa
+ * dall'utente, se essa è già presente chiede se essa deve essere scambiata o eliminata.
+ * Oppure essa scambia o elimina una determinata preferenza attraverso il campo tipologia('a'->ascolto
+ * 'l'->like 'd'->dislike)
+ * @param int id_artista Id dell'artista.
+ * @param int id_utente Id dell'utente.
+ * @param char tipologia tipologia .
+ * @return True se la funzione viene eseguita senza errori oppure false.
+ */
 bool inserimento_ascolti_e_preferenze(int id_artista,int id_utente,char tipologia){
 	FILE *out;
 	int app = -1;
@@ -1105,6 +1236,13 @@ bool inserimento_ascolti_e_preferenze(int id_artista,int id_utente,char tipologi
 	return risultato;
 }
 
+/**
+ * La funzione controlla sul file "preferenze_ascolto.csv" se è presente una determinato ascolto,
+ * like o dislike
+ * @param char * string Stringa contenente l'id dell'utente,l'id dell'artista,"ascolto"/"like"/"preferenza"
+ * "id_utente;id_artista;like/dislike/ascolto)
+ * @return True se non ci sono stringhe uguali nel file altrimenti false.
+ */
 bool controllo_file_preferenze(char * string){
 	FILE *in;
 	in = fopen("preferenze_ascolto.csv","r");
@@ -1118,6 +1256,12 @@ bool controllo_file_preferenze(char * string){
 	return risultato;
 }
 
+/**
+ * La funzione inserisce in coda al file i dati dell'admin
+ * @param struct utente admin La struttura contenente i dati
+ * @return True se la funzione ha inserito correttamente i dati sul file, False se non ha
+ * inserito i dati sul file.
+ */
 bool aggiungi_admin(struct utente admin){
 	bool condizione,var1 = false,app2 = true;
 	int app,risultato;
@@ -1141,6 +1285,14 @@ bool aggiungi_admin(struct utente admin){
 	return var1;
 }
 
+/**
+ * La funzione ordina gli artisti in un determinato modo ('a'->ascolti 'p'->like),
+ * creando una top 10,
+ * dopo l'ordinamento è possibile ascoltare o lasciare una preferenza per un determinato artista.
+ * @param char tipologia tipologia di ordinamento
+ * @param int id_utente ID dell'utente.
+ * @return True se la funzione viene eseguita senza errori oppure false.
+ */
 bool ordinamento_artisti(char tipologia,int id_utente){
 	FILE *in;
 	char app1[20];
@@ -1150,7 +1302,7 @@ bool ordinamento_artisti(char tipologia,int id_utente){
 		int num_roba;
 		struct artista art;
 	};
-	char string_f[200],var1[15],variabile,var2;
+	char string_f[200],var1[15],var2;
 	int n_pr = 0,n_art = 0,risposta = 0;
 	struct pd cipolla[100],app;
 	bool condizione,controllo;
@@ -1212,6 +1364,13 @@ bool ordinamento_artisti(char tipologia,int id_utente){
 
 }
 
+/**
+ * La funzione riceve in input una stringa e una tipologia in base alla tipologia ritorna un
+ * determinato carattere.
+ * @param char risposta[20] variabile contenente una stringa inserita dall'utente.
+ * @param char tipologia tipo di controllo da effettuare.
+ * @return Uno specifico carattere.
+ */
 char controllo_risposta(char risposta[20],char tipologia){
 	char condizione = 'r';
 	strtok(risposta,"\n");
@@ -1264,6 +1423,11 @@ char controllo_risposta(char risposta[20],char tipologia){
  return condizione;
 }
 
+/**
+ * La funzione riceve in input un puntatore ad una stringa e la rende minuscola
+ * @param char* string Stringa da convertire in minuscolo
+ * @return La stringa convertita in minuscolo e presente sulla variabile utilizzata come primo parametro.
+ */
 char* to_minuscolo(char *string){
 	int i, s = 0;
 	s  =  strlen(string);
@@ -1274,6 +1438,12 @@ char* to_minuscolo(char *string){
 	return string;
 }
 
+/**
+ * La funzione divide in token la stringa e inseirsce i vari token negli
+ * appositi campi della struct preferenza
+ * @param char* string Stringa in input da dividere in token.
+ * @return struct preferenza Contenente i dati della stringa in input inseriti nei vari campi.
+ */
 struct preferenza string_to_struct_preferenza(char *string){
 	struct preferenza var;
 	var.id_utente = atoi(strtok(string,";"));
@@ -1283,6 +1453,13 @@ struct preferenza string_to_struct_preferenza(char *string){
 	return var;
 }
 
+/**
+ * La funzione mostra a video le preferenze e gli ascolti dell'utente e permette all'utente di
+ * modificare o eliminare gli ascolti o le preferenze
+ * @param int id_utente Id dell'utente che ha richiamato la funzione
+ * @param char *tipo Tipologia di preferenza o ascolto da mostrare
+ * @return True se la funzione viene eseguita senza errori oppure false.
+ */
 bool preferenze_e_ascolti_utente(int id_utente,char *tipo){
 	FILE *in;
 	in = fopen("preferenze_ascolto.csv","r");
@@ -1365,6 +1542,12 @@ bool preferenze_e_ascolti_utente(int id_utente,char *tipo){
 	return true;
 }
 
+/**
+ * La funzione elimina le preferenza di un'artista o un'utente quando uno di essi viene eliminato
+ * @param int id Id dell'utente o dell'artista
+ * @param char tipologia Tipo di id a cui la funzione fa riferimento('a'->artisti 'u'->utenti)
+ * @return True se la funzione viene eseguita senza errori oppure false.
+ */
 bool elimina_preferenze(int id,char tipologia){
 	char string_f[100];
 	struct preferenza array[200],app;
@@ -1411,9 +1594,15 @@ bool elimina_preferenze(int id,char tipologia){
 	return risultato;
 }
 
-
+/**
+ * La funzione permette di modificare o eliminare una determinata preferenza
+ * @param int id_artista ID dell'artista
+ * @param int id_utente Id dell'utente
+ * @param char tipologia Tipologia ('e'->elimina 'm'->'modifica)
+ * @return True se la funzione viene eseguita senza errori oppure false.
+ */
 bool modifica_preferenza(int id_artista,int id_utente,char tipologia){
-	char condizione = 'r',string_f[100];
+	char string_f[100];
 	FILE *in,*out;
 	in = fopen("preferenze_ascolto.csv","r");
 	struct preferenza array[100];
@@ -1460,7 +1649,12 @@ bool modifica_preferenza(int id_artista,int id_utente,char tipologia){
 }
 
 
-
+/**
+ * La funzione controlla che nella stringa non siano presenti caratteri alfabetici o spazi
+ * @param char* string Stringa da controllare
+ * @return True se la stringa contien un carattere alfabetico o uno spazio oppure False se è composta
+ * da soli numeri.
+ */
 bool alfanumerico(char *string){
 	strtok(string,"\n");
 	bool condizione_alphanum = false;
