@@ -93,16 +93,16 @@ int main(){
 	char risposta_primaria[100],var12;
 	printf("---------------------SPOTIFY---------------------\n");
 	do{
-	printf("Registrazione o login? <registrazione>/<login>\n");
+	printf("Registrazione o login? <registrazione>/<login>\n");				//stampa per la richiesta di registrazione o login
 		fflush(stdin);
 		fgets(risposta_primaria,100,stdin);
 		to_minuscolo(risposta_primaria);
 		var12=controllo_risposta(risposta_primaria,'z');
-	}while(var12=='r');
+	}while(var12=='r');										//programmazione difensiva per evitare errori di battitura dell'utente
 	system("cls");
 	do{
 		if(var12=='y'){
-			printf("---------------------LOGIN---------------------\n");
+			printf("---------------------LOGIN---------------------\n");	//stampa per l'inserimento di user e password
 			printf("Inserisci user:");
 			fflush(stdin);
 			fgets(nome,MAX,stdin);
@@ -120,14 +120,14 @@ int main(){
 			}
 		}
 		if(var12=='x'){
-			printf("---------------------REGISTRAZIONE---------------------\n");
+			printf("---------------------REGISTRAZIONE---------------------\n"); //stampa per la registrazione dell'utente e per l'inserimento
 			utente_registrato=input_registrazione();
 			app=registrazione(utente_registrato);
 			if(app){
 				var=utente_registrato;
 				condizione=false;
 			}
-			controllo_funzioni(app,'r');
+			controllo_funzioni(app,'r');					//restituisce errore se l'user inserito e' gia' presente
 
 		}
 	}while(condizione);
@@ -141,7 +141,7 @@ int main(){
 	char continua[80],string_da_modificare[20];
 	if(strcmp(var.tipo,"admin")==0){
 		do{
-			printf("---------------------MENU'---------------------\n");
+			printf("---------------------MENU'---------------------\n");			//stampa del menu' principale per l'admin
 			printf("[1] Per aggiungere, modificare o eliminare degli artisti \n");
 			printf("[2] Per aggiungere, modificare o eliminare degli utenti \n");
 			printf("[3] Per aggiungere, modificare o eliminare admin\n");
@@ -165,7 +165,7 @@ int main(){
 				continue;
 			}
 			printf("\n");
-			printf("---------------------MENU' %s---------------------\n",string);
+			printf("---------------------MENU' %s---------------------\n",string);		//stampa del menu' interno per aggiungere, modificare o eliminare artisti utenti e admin
 			printf("[1] Per aggiungere un %s\n",string);
 			printf("[2] Per modificare un %s\n",string);
 			printf("[3] Per eliminare un %s\n",string);
@@ -187,7 +187,7 @@ int main(){
 								fflush(stdin);
 								fgets(mista,MAX_NUM_INPUT,stdin);
 								artista.numero_generi=atoi(mista);
-							}while(alfanumerico(mista) || artista.numero_generi<=0 || artista.numero_generi>MAX_GENERI);
+							}while(alfanumerico(mista) || artista.numero_generi<=0 || artista.numero_generi>MAX_GENERI);		//e' possibile avere un massimo di 10 generi per artista
 							for(int i=0;i<artista.numero_generi;i++){
 								fflush(stdin);
 								printf("Inserire il genere n.%d:",i+1);
@@ -217,7 +217,7 @@ int main(){
 						}while(franco=='s');
 					}
 					else if(scelta_1==2){
-						printf("---------------------AGGIUNTA %s---------------------\n",string);
+						printf("---------------------AGGIUNTA %s---------------------\n",string);		//stampa per l'aggiunta utenti
 						do{
 							utente_registrato=input_registrazione();
 							varr=registrazione(utente_registrato);
@@ -232,7 +232,7 @@ int main(){
 					}
 					else if(scelta_1==3){
 						//aggiunta ADMIN
-						printf("---------------------AGGIUNTA %s---------------------\n",string);
+						printf("---------------------AGGIUNTA %s---------------------\n",string);		//stampa per l'aggiunta di admin
 						do{
 							admin_to_add=input_registrazione();
 							strcpy(admin_to_add.tipo,"admin");
@@ -251,9 +251,9 @@ int main(){
 				case 2:
 					strcpy(continua,"1");
 					if(scelta_1==1){
-						printf("---------------------MODIFICA ARTISTI--------------------- \n");
+						printf("---------------------MODIFICA ARTISTI--------------------- \n");			//stampa per la modifica dei vari campi dell'artista
 						do{
-							printf("Desideri visualizzare l'elenco degli artisti iscritti?<si><no>\n");
+							printf("Desideri visualizzare l'elenco degli artisti iscritti?<si><no>\n");		//stampa l'elenco degli artisti se si risponde affermativamente
 							fflush(stdin);
 							fgets(scelta_3,MAX_NUM_INPUT,stdin);
 							if(controllo_risposta(scelta_3,'q')=='s'){
@@ -262,7 +262,7 @@ int main(){
 							do{
 								condizione_while=false;
 								do{
-									printf("Inserisci l'ID dell'artista da modificare<ID>\n");
+									printf("Inserisci l'ID dell'artista da modificare<ID>\n");				//richiesta per inserire l'ID dell'artista da modificare
 									fflush(stdin);
 									fgets(mista,MAX_NUM_INPUT,stdin);
 									numero=atoi(mista);
@@ -291,11 +291,11 @@ int main(){
 					else if(scelta_1==2) {
 						struct utente utente_da_modificare,utente_modificato;
 						char string_da_modificare[200];
-						printf("---------------------MODIFICA UTENTI---------------------\n");
+						printf("---------------------MODIFICA UTENTI---------------------\n");				//stampa per la modifica dei vari campi dell'utente
 						do{
 							condizione=false;
 							do{
-								printf("Desideri visualizzare l'elenco degli utenti iscritti?<si><no>\n");
+								printf("Desideri visualizzare l'elenco degli utenti iscritti?<si><no>\n");	//stampa l'elenco degli utenti se si risponde affermativamente
 								fflush(stdin);
 								fgets(continua,MAX_NUM_INPUT,stdin);
 								franco=controllo_risposta(continua,'q');
@@ -305,7 +305,7 @@ int main(){
 							do{
 								condizione_while=false;
 								do{
-									printf("Inserisci l'ID dell'utente da modificare\n");
+									printf("Inserisci l'ID dell'utente da modificare\n");					//richiesta per inserire l'ID dell'utente da modificare
 									fflush(stdin);
 									fgets(mista,MAX_NUM_INPUT,stdin);
 									numero=atoi(mista);
@@ -333,9 +333,9 @@ int main(){
 						do{
 							char string_da_modificare[200];
 							struct utente admin_da_modificare,admin_modificato;
-							printf("---------------------MODIFICA ADMIN--------------------- \n");
+							printf("---------------------MODIFICA ADMIN--------------------- \n");			//stampa per la modifica dei vari campi dell'utente
 							do{
-								printf("Desideri visualizzare l'elenco degli admin iscritti?<si><no>\n");
+								printf("Desideri visualizzare l'elenco degli admin iscritti?<si><no>\n");	//stampa l'elenco degli admin se si risponde affermativamente
 								fflush(stdin);
 								fgets(scelta_3,MAX_NUM_INPUT,stdin);
 							}while(controllo_risposta(scelta_3,'q')=='r');
@@ -347,7 +347,7 @@ int main(){
 								do{
 									condizione_while=false;
 									do{
-										printf("Inserire l'ID dell'admin da modificare:\n");
+										printf("Inserire l'ID dell'admin da modificare:\n");				//richiesta per inserire l'ID dell'utente da modificare
 										fflush(stdin);
 										fgets(mista,MAX_NUM_INPUT,stdin);
 										fflush(stdin);
@@ -376,7 +376,7 @@ int main(){
 					system("cls");
 					break;
 				case 3:
-					printf("---------------------ELIMINA %s---------------------\n",string);
+					printf("---------------------ELIMINA %s---------------------\n",string);			//stampa per l'eliminazione di uno tra artisti,utenti e admin
 					char scelta_elenco[3],scelta_to_continue[3];
 
 					int id_to_delete;
@@ -526,7 +526,7 @@ int main(){
 		struct utente utente_modificato;
 		bool condizione_do=false,condizione_profilo=false;
 		do{
-			printf("---------------------MENU'---------------------\n");
+			printf("---------------------MENU'---------------------\n");					//menu' principale per gli utenti
 			printf("[1] Ricerca artista per ascolto o preferenza \n");
 			printf("[2] TOP 10 \n");
 			printf("[3] Profilo utente \n");
@@ -538,14 +538,14 @@ int main(){
 			system("cls");
 		switch(scelta){
 			case 1://ricerca approssimata
-				printf("---------------------RICERCA---------------------\n");
+				printf("---------------------RICERCA---------------------\n");					//stampa per la ricerca
 				bool condizione,app,condizione_caratteri;
 				char risposta[20];
 				do{
 					condizione=true;
 					do{
 						fflush(stdin);
-						printf("Inserisci il campo di ricerca<nome><genere><produttore><nazione><anno>\n");
+						printf("Inserisci il campo di ricerca<nome><genere><produttore><nazione><anno>\n");	//inserimento dei vari campi di ricerca
 
 						fgets(risposta,MAX,stdin);
 						to_minuscolo(risposta);
@@ -597,9 +597,9 @@ int main(){
 							}while(condizione_caratteri);
 							app=ricerca_artisti(risposta,'a',var.id);
 						}
-					}while(condizione);
+					}while(condizione);														//programmazione difensiva per evitare errori di battitura
 					do{
-						printf("Desideri effettuare un'altra ricerca?<si><no>\n");
+						printf("Desideri effettuare un'altra ricerca?<si><no>\n");			//se risposta affermativamente ritorna al menu' di ricerca
 						fflush(stdin);
 						fgets(scelta_3,MAX_NUM_INPUT,stdin);
 						franco=controllo_risposta(scelta_3,'q');
@@ -608,21 +608,21 @@ int main(){
 				system("cls");
 				break;
 			case 2://ordinamento
-				printf("---------------------TOP 10---------------------\n");
+				printf("---------------------TOP 10---------------------\n");				//visualizza la top 10
 				do{
-					printf("Vuoi visualizzare la top 10 ascoltati o piaciuti?<ascoltati><piaciuti>\n");
+					printf("Vuoi visualizzare la top 10 ascoltati o piaciuti?<ascoltati><piaciuti>\n");	// e' possibile visualizzare la top 10 ascolti o top 10 like
 					fflush(stdin);
 					fgets(risposta,MAX,stdin);
-				}while((var5=controllo_risposta(risposta,'a'))=='r');
+				}while((var5=controllo_risposta(risposta,'a'))=='r');						//programmazione difensiva per evitare errori di battitura
 				ordinamento_artisti(var5,var.id);
 				system("cls");
 				break;
-			case 3://visualizzazione profilo
+			case 3:// profilo
 				do{
-					printf("---------------------PROFILO---------------------\n");
+					printf("---------------------PROFILO---------------------\n");			//menu' profilo utente
 					printf("[1] Visualizza il tuo profilo \n");
 					printf("[2] Visualizza preferenze e ascolti\n");
-					printf("[3] Elimina profilo\n");//implementare la ricerca.
+					printf("[3] Elimina profilo\n");
 					printf("[4] Torna indietro\n");
 					printf("risposta: ");
 					fflush(stdin);
@@ -632,10 +632,10 @@ int main(){
 					condizione_profilo=false;
 					switch(scelta){
 						case 1:
-							printf("---------------------IL TUO PROFILO---------------------\n");
+							printf("---------------------IL TUO PROFILO---------------------\n");	//visualizza il profilo dell'utente
 							visualizza_dati_id(var.id,txt_utente,'u',string_id);
 
-							printf("Vuoi modificare i tuoi dati?[si/no]\n");
+							printf("Vuoi modificare i tuoi dati?[si/no]\n");						//se risposta affermativamente modifca i vari campi dell'utente
 							do{
 								fflush(stdin);
 								fgets(scelta_3,MAX_NUM_INPUT,stdin);
@@ -649,17 +649,17 @@ int main(){
 							system("cls");
 						break;
 						case 2:
-							printf("---------------------LE TUE PREFERENZE---------------------\n");
-							preferenze_e_ascolti_utente(var.id,"ascoltato");
-							preferenze_e_ascolti_utente(var.id,"like");
-							preferenze_e_ascolti_utente(var.id,"dislike");
+							printf("---------------------LE TUE PREFERENZE---------------------\n"); // visualizza tutti i tipi di interazione avvenuti con la piattaforma
+							preferenze_e_ascolti_utente(var.id,"ascoltato");						 //visualizza gli asolti
+							preferenze_e_ascolti_utente(var.id,"like");								 //visualizza i like
+							preferenze_e_ascolti_utente(var.id,"dislike");							 //visualizza i dislike
 							system("pause");
 							system("cls");
 						break;
 						case 3:
-							printf("---------------------ELINIMAZIONE---------------------\n");
+							printf("---------------------ELINIMAZIONE---------------------\n");		// eliminazione account
 							do{
-								printf("Sei sicuro di voler eliminare il tuo profilo?<si><no>\n");
+								printf("Sei sicuro di voler eliminare il tuo profilo?<si><no>\n");	// domanda per esprime la massima responsabilita' da parte dell'utente della cancellazione del suo profilo
 								fflush(stdin);
 								fgets(risposta,MAX_NUM_INPUT,stdin);
 								franco=controllo_risposta(risposta,'q');
@@ -705,4 +705,3 @@ int main(){
 		return 0;
 
 	}
-
